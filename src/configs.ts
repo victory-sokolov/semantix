@@ -46,7 +46,7 @@ export function setupLefthook(cwd: string) {
     execCommand("bunx lefthook install", cwd);
     log("✓ Lefthook installed and configured", "success");
   } catch (error) {
-    log("⚠️ Failed to run 'lefthook install', you may need to run it manually", "warning");
+    log(`⚠️ Failed to run 'lefthook install': ${error}`, "warning");
   }
 }
 
