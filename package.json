@@ -1,0 +1,40 @@
+{
+  "name": "semantix",
+  "version": "0.0.1",
+  "description": "CLI tool to setup conventional commits, semantic-release, and automated releases",
+  "keywords": [
+    "cli",
+    "commitlint",
+    "conventional-commits",
+    "semantic-release",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "Viktor Sokolov",
+  "bin": {
+    "setup-commits": "./src/index.ts"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "start": "bun run ./src/index.ts",
+    "dev": "bun --watch ./src/index.ts",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@types/node": "25.0.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "oxfmt": "latest",
+    "oxlint": "latest",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "bun": ">=1.0.0"
+  }
+}
