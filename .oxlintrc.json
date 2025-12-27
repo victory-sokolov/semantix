@@ -1,0 +1,31 @@
+{
+  "rules": {
+    "no-unused-vars": "error",
+    "prefer-const": "error",
+    "no-var": "error",
+    "curly": "error",
+    "eqeqeq": "error",
+    "no-debugger": "error",
+    "no-duplicate-imports": "error",
+    "no-eval": "error",
+    "no-implicit-globals": "error",
+    "no-new-func": "error",
+    "no-script-url": "error",
+    "no-sequences": "error",
+    "no-throw-literal": "error",
+    "no-unused-expressions": "error",
+    "no-useless-call": "error",
+    "no-useless-concat": "error",
+    "no-useless-return": "error",
+    "prefer-arrow-callback": "error",
+    "prefer-template": "error",
+    "strict": ["error", "never"],
+    "typescript/no-unused-vars": "error",
+    "typescript/no-explicit-any": "warn",
+    "typescript/prefer-as-const": "error",
+    "typescript/no-inferrable-types": "error",
+    "typescript/no-non-null-assertion": "warn",
+    "typescript/prefer-nullish-coalescing": "error",
+    "typescript/prefer-optional-chain": "error"
+  }
+}
