@@ -1,4 +1,3 @@
-
 export type PackageManager = "npm" | "yarn" | "pnpm" | "bun";
 
 export const PM_LOCK_FILES = {
@@ -121,7 +120,7 @@ ${setupStep}
 
 export const getCommitConventionReadme = (pm: PackageManager = "bun") => {
   const runCmd = pm === "bun" ? "bun run" : `${pm} run`;
-  
+
   return `# Commit Convention
 
 This project uses [Conventional Commits](https://www.conventionalcommits.org/).
@@ -187,13 +186,13 @@ export const ASCII_ART = `
 
 export const getLefthookConfig = (pm: PackageManager = "bun") => {
   const runPrefix = pm === "bun" ? "bun run" : `${pm} run`;
-  const executePrefix = pm === "bun" ? "bunx" : pm === "npm" ? "npx" : pm === "yarn" ? "yarn dlx" : "pnpm dlx";
+  const executePrefix =
+    pm === "bun" ? "bunx" : pm === "npm" ? "npx" : pm === "yarn" ? "yarn dlx" : "pnpm dlx";
   // actually for commitlint, we might standardise on using the locally installed one via the script runner or npx/bunx.
   // bunx --no is specific.
-  
-  const commitlintCmd = pm === "bun" 
-    ? "bunx --no -- commitlint --edit {1}"
-    : `${executePrefix} commitlint --edit {1}`;
+
+  const commitlintCmd =
+    pm === "bun" ? "bunx --no -- commitlint --edit {1}" : `${executePrefix} commitlint --edit {1}`;
 
   return `pre-commit:
   commands:

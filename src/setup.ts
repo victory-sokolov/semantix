@@ -8,7 +8,6 @@ import {
   createGitHubWorkflow,
   createReadme,
 } from "./configs";
-import { error } from "console";
 
 export class ConventionalCommitSetup {
   private cwd: string;
@@ -24,7 +23,7 @@ export class ConventionalCommitSetup {
 
     const cmd = getInstallCommand(this.packageManager, DEPENDENCIES);
     execCommand(cmd, this.cwd);
-    
+
     log("✓ Dependencies installed", "success");
   }
 
@@ -44,9 +43,9 @@ export class ConventionalCommitSetup {
       createReadme(this.cwd, this.packageManager);
 
       log("\n✨ Setup completed successfully!\n", "success");
-      
+
       const runCmd = this.packageManager === "bun" ? "bun run" : `${this.packageManager} run`;
-      
+
       log("Next steps:", "info");
       log("1. Commit your changes with a conventional commit message", "info");
       log("2. Push to main/master branch to trigger automatic release", "info");
@@ -57,4 +56,3 @@ export class ConventionalCommitSetup {
     }
   }
 }
-

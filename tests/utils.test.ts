@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { log, detectPackageManager, getInstallCommand } from "../src/utils.ts";
 import { existsSync } from "fs";
-import { join } from "path";
-import { PM_LOCK_FILES } from "../src/constants.ts";
 
 vi.mock("fs", () => ({
   existsSync: vi.fn(),
@@ -50,27 +48,37 @@ describe("Utility Functions", () => {
     });
 
     it("should detect bun via bun.lockb", () => {
-      (existsSync as unknown as Mock).mockImplementation((path: string) => path.endsWith("bun.lockb"));
+      (existsSync as unknown as Mock).mockImplementation((path: string) =>
+        path.endsWith("bun.lockb"),
+      );
       expect(detectPackageManager(mockCwd)).toBe("bun");
     });
 
     it("should detect bun via bun.lock", () => {
-      (existsSync as unknown as Mock).mockImplementation((path: string) => path.endsWith("bun.lock"));
+      (existsSync as unknown as Mock).mockImplementation((path: string) =>
+        path.endsWith("bun.lock"),
+      );
       expect(detectPackageManager(mockCwd)).toBe("bun");
     });
 
     it("should detect npm via package-lock.json", () => {
-      (existsSync as unknown as Mock).mockImplementation((path: string) => path.endsWith("package-lock.json"));
+      (existsSync as unknown as Mock).mockImplementation((path: string) =>
+        path.endsWith("package-lock.json"),
+      );
       expect(detectPackageManager(mockCwd)).toBe("npm");
     });
 
     it("should detect yarn via yarn.lock", () => {
-      (existsSync as unknown as Mock).mockImplementation((path: string) => path.endsWith("yarn.lock"));
+      (existsSync as unknown as Mock).mockImplementation((path: string) =>
+        path.endsWith("yarn.lock"),
+      );
       expect(detectPackageManager(mockCwd)).toBe("yarn");
     });
 
     it("should detect pnpm via pnpm-lock.yaml", () => {
-      (existsSync as unknown as Mock).mockImplementation((path: string) => path.endsWith("pnpm-lock.yaml"));
+      (existsSync as unknown as Mock).mockImplementation((path: string) =>
+        path.endsWith("pnpm-lock.yaml"),
+      );
       expect(detectPackageManager(mockCwd)).toBe("pnpm");
     });
 

@@ -3,7 +3,6 @@ import { existsSync, writeFileSync, readFileSync, mkdirSync } from "fs";
 import { join } from "path";
 import { PM_LOCK_FILES, type PackageManager } from "./constants";
 
-
 export function log(message: string, type: "info" | "success" | "error" | "warning" = "info") {
   const colors = {
     info: "\x1b[36m",
@@ -60,7 +59,7 @@ export function detectPackageManager(cwd: string): PackageManager {
       return pm as PackageManager;
     }
   }
-  
+
   // Default to bun if no lock file found, or maybe check what ran the script?
   // But requirement says determine based on lock file.
   return "bun";

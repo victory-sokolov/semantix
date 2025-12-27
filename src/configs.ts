@@ -48,19 +48,16 @@ export function setupLefthook(cwd: string, pm: PackageManager) {
 
   // Install Lefthook
   try {
-    const installCmd = pm === "bun" ? "bunx lefthook install" : "npx lefthook install";
-    // Or maybe just `npx lefthook install` works for all except maybe pnpm might warn?
-    // pnpm dlx lefthook install?
-    // yarn dlx lefthook install?
-    
-    // Simplest is trying to use the package manager's execute command if possible, 
-    // but `npx` usually works with node. 
-    // If it is bun, we used bunx.
-    // Let's stick to npx for others for now or map it.
     let execCmd = "npx lefthook install";
-    if (pm === "bun") execCmd = "bunx lefthook install";
-    if (pm === "yarn") execCmd = "yarn dlx lefthook install";
-    if (pm === "pnpm") execCmd = "pnpm dlx lefthook install";
+    if (pm === "bun") {
+      execCmd = "bunx lefthook install";
+    }
+    if (pm === "yarn") {
+      execCmd = "yarn dlx lefthook install";
+    }
+    if (pm === "pnpm") {
+      execCmd = "pnpm dlx lefthook install";
+    }
 
     execCommand(execCmd, cwd);
     log("✓ Lefthook installed and configured", "success");
