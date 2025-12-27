@@ -41,8 +41,9 @@ export function readJsonFile(filePath: string): unknown {
 
 export function updatePackageJsonScripts(packageJsonPath: string, scripts: Record<string, string>) {
   const packageJson = readJsonFile(packageJsonPath) as Record<string, unknown>;
+  const existingScripts = (packageJson.scripts as Record<string, string>) || {};
   packageJson.scripts = {
-    ...packageJson.scripts,
+    ...existingScripts,
     ...scripts,
   };
   writeJsonFile(packageJsonPath, packageJson);
