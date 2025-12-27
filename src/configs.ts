@@ -5,7 +5,7 @@ import {
   SEMANTIC_RELEASE_CONFIG,
   GITHUB_WORKFLOW,
   COMMIT_CONVENTION_README,
-  COMMIT_MSG_HOOK,
+  LEFTHOOK_CONFIG,
 } from "./constants";
 import {
   log,
@@ -35,20 +35,19 @@ export function createSemanticReleaseConfig(cwd: string) {
   log("✓ .releaserc.json created", "success");
 }
 
-export function setupHusky(cwd: string) {
-  log("🐕 Setting up Husky...", "info");
+export function setupLefthook(cwd: string) {
+  log("🥊 Setting up Lefthook...", "info");
 
-  // Initialize Husky
-  execCommand("bunx husky init", cwd);
+  // Create lefthook.yml
+  writeTextFile(join(cwd, "lefthook.yml"), LEFTHOOK_CONFIG);
 
-  // Create commit-msg hook
-  const huskyDir = join(cwd, ".husky");
-  ensureDirectoryExists(huskyDir);
-
-  writeTextFile(join(huskyDir, "commit-msg"), COMMIT_MSG_HOOK);
-  execCommand(`chmod +x ${join(huskyDir, "commit-msg")}`, cwd);
-
-  log("✓ Husky configured with commit-msg hook", "success");
+  // Install Lefthook
+  try {
+    execCommand("bunx lefthook install", cwd);
+    log("✓ Lefthook installed and configured", "success");
+  } catch (error) {
+    log("⚠️ Failed to run 'lefthook install', you may need to run it manually", "warning");
+  }
 }
 
 export function updatePackageJson(cwd: string) {
@@ -58,7 +57,7 @@ export function updatePackageJson(cwd: string) {
   const scripts = {
     release: "semantic-release",
     "release:dry": "semantic-release --dry-run",
-    prepare: "husky",
+    prepare: "lefthook install",
   };
 
   const packageJson = readJsonFile(packageJsonPath);

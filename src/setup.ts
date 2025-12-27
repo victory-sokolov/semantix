@@ -3,7 +3,7 @@ import { log, execCommand } from "./utils";
 import {
   createCommitlintConfig,
   createSemanticReleaseConfig,
-  setupHusky,
+  setupLefthook,
   updatePackageJson,
   createGitHubWorkflow,
   createReadme,
@@ -32,7 +32,7 @@ export class ConventionalCommitSetup {
       this.installDependencies();
       createCommitlintConfig(this.cwd);
       createSemanticReleaseConfig(this.cwd);
-      setupHusky(this.cwd);
+      setupLefthook(this.cwd);
       updatePackageJson(this.cwd);
       createGitHubWorkflow(this.cwd);
       createReadme(this.cwd);

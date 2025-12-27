@@ -4,7 +4,7 @@ export const DEPENDENCIES = [
   "@semantic-release/github",
   "@commitlint/cli",
   "@commitlint/config-conventional",
-  "husky",
+  "lefthook",
   "semantic-release",
 ];
 
@@ -156,8 +156,8 @@ export const ASCII_ART = `
 ╚═══════════════════════════════════════════════════════════════╝
 `;
 
-export const COMMIT_MSG_HOOK = `#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-bunx --no -- commitlint --edit $1
+export const LEFTHOOK_CONFIG = `commit-msg:
+  commands:
+    commitlint:
+      run: bunx --no -- commitlint --edit {1}
 `;

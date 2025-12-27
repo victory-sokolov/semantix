@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   createCommitlintConfig,
   createSemanticReleaseConfig,
-  setupHusky,
+  setupLefthook,
   updatePackageJson,
   createGitHubWorkflow,
   createReadme
@@ -45,13 +45,13 @@ describe('Configuration File Generators', () => {
     })
   })
 
-  describe('Husky Git Hooks Setup', () => {
+  describe('Lefthook Git Hooks Setup', () => {
     it('should be a function', () => {
-      expect(typeof setupHusky).toBe('function')
+      expect(typeof setupLefthook).toBe('function')
     })
 
     it('should not throw when called', () => {
-      expect(() => setupHusky(mockCwd)).not.toThrow()
+      expect(() => setupLefthook(mockCwd)).not.toThrow()
     })
   })
 

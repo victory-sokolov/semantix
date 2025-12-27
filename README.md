@@ -21,7 +21,7 @@ See [QUICKSTART.md](./QUICKSTART.md) for a detailed getting started guide.
 ## Features
 
 - ✅ **Commitlint** - Enforces conventional commit format
-- ✅ **Husky** - Git hooks to validate commits
+- ✅ **Lefthook** - Git hooks to validate commits
 - ✅ **Semantic Release** - Automated versioning and releases
 - ✅ **Changelog Generation** - Auto-generates CHANGELOG.md
 - ✅ **GitHub Releases** - Creates releases automatically
@@ -77,8 +77,7 @@ your-project/
 ├── .github/
 │   └── workflows/
 │       └── release.yml           # GitHub Actions workflow
-├── .husky/
-│   └── commit-msg                # Git hook for commit validation
+├── lefthook.yml            # Git hooks configuration
 ├── commitlint.config.js          # Commit message rules
 ├── .releaserc.json               # Semantic-release config
 ├── COMMIT_CONVENTION.md          # Team documentation
@@ -93,14 +92,14 @@ your-project/
 - `@semantic-release/changelog`
 - `@semantic-release/git`
 - `@semantic-release/github`
-- `husky`
+- `lefthook`
 - `semantic-release`
 
 ### 2. Configuration Files Created
 
 - **commitlint.config.js** - Commit message validation rules
 - **.releaserc.json** - Semantic-release configuration
-- **.husky/commit-msg** - Git hook to enforce commit format
+- **lefthook.yml** - Git hooks configuration
 - **.github/workflows/release.yml** - GitHub Actions workflow
 - **COMMIT_CONVENTION.md** - Documentation for your team
 
@@ -111,7 +110,7 @@ your-project/
   "scripts": {
     "release": "semantic-release",
     "release:dry": "semantic-release --dry-run",
-    "prepare": "husky"
+    "prepare": "lefthook install"
   }
 }
 ```
@@ -300,8 +299,7 @@ bun publish
 ### Commits are not being validated
 
 ```bash
-# Reinstall Husky hooks
-bunx husky install
+bunx lefthook install
 ```
 
 ### Release not triggering

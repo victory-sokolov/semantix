@@ -6,7 +6,7 @@ import {
   SEMANTIC_RELEASE_CONFIG,
   GITHUB_WORKFLOW,
   ASCII_ART,
-  COMMIT_MSG_HOOK
+  LEFTHOOK_CONFIG,
 } from '../src/constants.ts'
 
 describe('Configuration Constants', () => {
@@ -17,7 +17,7 @@ describe('Configuration Constants', () => {
       expect(DEPENDENCIES).toContain('@semantic-release/github')
       expect(DEPENDENCIES).toContain('@commitlint/cli')
       expect(DEPENDENCIES).toContain('@commitlint/config-conventional')
-      expect(DEPENDENCIES).toContain('husky')
+      expect(DEPENDENCIES).toContain('lefthook')
       expect(DEPENDENCIES).toContain('semantic-release')
     })
 
@@ -113,11 +113,11 @@ describe('Configuration Constants', () => {
     })
   })
 
-  describe('Git Commit Message Hook', () => {
-    it('should be a valid shell script', () => {
-      expect(typeof COMMIT_MSG_HOOK).toBe('string')
-      expect(COMMIT_MSG_HOOK).toContain('#!/usr/bin/env sh')
-      expect(COMMIT_MSG_HOOK).toContain('commitlint')
+  describe('Lefthook Configuration', () => {
+    it('should be a valid YAML string', () => {
+      expect(typeof LEFTHOOK_CONFIG).toBe('string')
+      expect(LEFTHOOK_CONFIG).toContain('commit-msg:')
+      expect(LEFTHOOK_CONFIG).toContain('commitlint')
     })
   })
 })

@@ -10,7 +10,7 @@ vi.mock('../src/utils.ts', () => ({
 vi.mock('../src/configs.ts', () => ({
   createCommitlintConfig: vi.fn(),
   createSemanticReleaseConfig: vi.fn(),
-  setupHusky: vi.fn(),
+  setupLefthook: vi.fn(),
   updatePackageJson: vi.fn(),
   createGitHubWorkflow: vi.fn(),
   createReadme: vi.fn(),

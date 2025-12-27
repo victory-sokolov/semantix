@@ -100,7 +100,7 @@ Closes #123"
 ### Commits not being validated?
 
 ```bash
-bunx husky install
+bunx lefthook install
 ```
 
 ### Release not triggering?
