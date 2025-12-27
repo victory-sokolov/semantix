@@ -1,5 +1,5 @@
 name: "Setup"
-description: "Setup Node.js, Bun, and dependencies"
+description: "Setup Bun and dependencies"
 
 inputs:
   bun-version:

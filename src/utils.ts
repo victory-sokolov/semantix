@@ -27,7 +27,7 @@ export function ensureDirectoryExists(dirPath: string) {
   }
 }
 
-export function writeJsonFile(filePath: string, data: any) {
+export function writeJsonFile(filePath: string, data: unknown) {
   writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
@@ -35,12 +35,12 @@ export function writeTextFile(filePath: string, content: string) {
   writeFileSync(filePath, content);
 }
 
-export function readJsonFile(filePath: string): any {
+export function readJsonFile(filePath: string): unknown {
   return JSON.parse(readFileSync(filePath, "utf-8"));
 }
 
 export function updatePackageJsonScripts(packageJsonPath: string, scripts: Record<string, string>) {
-  const packageJson = readJsonFile(packageJsonPath);
+  const packageJson = readJsonFile(packageJsonPath) as Record<string, unknown>;
   packageJson.scripts = {
     ...packageJson.scripts,
     ...scripts,

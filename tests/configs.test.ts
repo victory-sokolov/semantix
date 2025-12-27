@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  createCommitlintConfig,
-  createSemanticReleaseConfig,
-  setupLefthook,
-  updatePackageJson,
-  createGitHubWorkflow,
-  createReadme,
-} from "../src/configs.ts";
+import { join } from "path";
+
+// Mock the fs module
+vi.mock("fs", () => ({
+  existsSync: vi.fn(() => false),
+  writeFileSync: vi.fn(),
+  readFileSync: vi.fn(),
+  mkdirSync: vi.fn(),
+}));
 
 // Mock the utils module
 vi.mock("../src/utils.ts", () => ({
@@ -18,6 +19,23 @@ vi.mock("../src/utils.ts", () => ({
   readJsonFile: vi.fn(() => ({ scripts: {} })),
 }));
 
+import { existsSync, writeFileSync } from "fs";
+import {
+  createCommitlintConfig,
+  createSemanticReleaseConfig,
+  setupLefthook,
+  updatePackageJson,
+  createGitHubWorkflow,
+  createReadme,
+} from "../src/configs.ts";
+import {
+  writeTextFile,
+  ensureDirectoryExists,
+  execCommand,
+  readJsonFile,
+  writeJsonFile,
+} from "../src/utils.ts";
+
 describe("Configuration File Generators", () => {
   const mockCwd = "/test/project";
 
@@ -26,62 +44,93 @@ describe("Configuration File Generators", () => {
   });
 
   describe("Commitlint Configuration Creation", () => {
-    it("should be a function", () => {
-      expect(typeof createCommitlintConfig).toBe("function");
-    });
+    it("should create commitlint.config.js with correct content", () => {
+      createCommitlintConfig(mockCwd);
 
-    it("should not throw when called", () => {
-      expect(() => createCommitlintConfig(mockCwd)).not.toThrow();
+      expect(writeTextFile).toHaveBeenCalledWith(
+        join(mockCwd, "commitlint.config.js"),
+        expect.stringContaining("module.exports ="),
+      );
     });
   });
 
   describe("Semantic Release Configuration Creation", () => {
-    it("should be a function", () => {
-      expect(typeof createSemanticReleaseConfig).toBe("function");
-    });
+    it("should create .releaserc.mjs with correct content", () => {
+      createSemanticReleaseConfig(mockCwd);
 
-    it("should not throw when called", () => {
-      expect(() => createSemanticReleaseConfig(mockCwd)).not.toThrow();
+      expect(writeTextFile).toHaveBeenCalledWith(
+        join(mockCwd, ".releaserc.mjs"),
+        expect.stringContaining("const config ="),
+      );
+      expect(writeTextFile).toHaveBeenCalledWith(
+        join(mockCwd, ".releaserc.mjs"),
+        expect.stringContaining("export default config"),
+      );
     });
   });
 
   describe("Lefthook Git Hooks Setup", () => {
-    it("should be a function", () => {
-      expect(typeof setupLefthook).toBe("function");
-    });
+    it("should create lefthook.yml and run install command", () => {
+      setupLefthook(mockCwd);
 
-    it("should not throw when called", () => {
-      expect(() => setupLefthook(mockCwd)).not.toThrow();
+      expect(writeTextFile).toHaveBeenCalledWith(join(mockCwd, "lefthook.yml"), expect.any(String));
+      expect(execCommand).toHaveBeenCalledWith("bunx lefthook install", mockCwd);
     });
   });
 
   describe("Package.json Scripts Update", () => {
-    it("should be a function", () => {
-      expect(typeof updatePackageJson).toBe("function");
-    });
+    it("should read and update package.json with scripts", () => {
+      updatePackageJson(mockCwd);
 
-    it("should not throw when called", () => {
-      expect(() => updatePackageJson(mockCwd)).not.toThrow();
+      expect(readJsonFile).toHaveBeenCalledWith(join(mockCwd, "package.json"));
+      expect(writeJsonFile).toHaveBeenCalledWith(
+        join(mockCwd, "package.json"),
+        expect.objectContaining({
+          scripts: expect.objectContaining({
+            release: "semantic-release",
+            "release:dry": "semantic-release --dry-run",
+            prepare: "lefthook install",
+          }),
+        }),
+      );
     });
   });
 
   describe("GitHub Actions Workflow Creation", () => {
-    it("should be a function", () => {
-      expect(typeof createGitHubWorkflow).toBe("function");
-    });
+    it("should create workflow directory and release.yml file", () => {
+      createGitHubWorkflow(mockCwd);
 
-    it("should not throw when called", () => {
-      expect(() => createGitHubWorkflow(mockCwd)).not.toThrow();
+      expect(ensureDirectoryExists).toHaveBeenCalledWith(join(mockCwd, ".github", "workflows"));
+      expect(writeTextFile).toHaveBeenCalledWith(
+        join(mockCwd, ".github", "workflows", "release.yml"),
+        expect.any(String),
+      );
     });
   });
 
   describe("Commit Convention README Creation", () => {
-    it("should be a function", () => {
-      expect(typeof createReadme).toBe("function");
+    beforeEach(() => {
+      vi.clearAllMocks();
+      // Reset existsSync to default (false)
+      vi.mocked(existsSync).mockReturnValue(false);
     });
 
-    it("should not throw when called", () => {
-      expect(() => createReadme(mockCwd)).not.toThrow();
+    it("should create README when file does not exist", () => {
+      createReadme(mockCwd);
+
+      expect(writeTextFile).toHaveBeenCalledWith(
+        expect.stringContaining("COMMIT_CONVENTION.md"),
+        expect.any(String),
+      );
+    });
+
+    it("should skip creation when file already exists", () => {
+      // Mock existsSync to return true (file exists)
+      vi.mocked(existsSync).mockReturnValue(true);
+
+      createReadme(mockCwd);
+
+      expect(writeFileSync).not.toHaveBeenCalled();
     });
   });
 });

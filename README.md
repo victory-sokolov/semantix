@@ -79,7 +79,7 @@ your-project/
 │       └── release.yml           # GitHub Actions workflow
 ├── lefthook.yml            # Git hooks configuration
 ├── commitlint.config.js          # Commit message rules
-├── .releaserc.json               # Semantic-release config
+├── .releaserc.mjs               # Semantic-release config
 ├── COMMIT_CONVENTION.md          # Team documentation
 └── package.json                  # Updated with scripts
 ```
@@ -98,7 +98,7 @@ your-project/
 ### 2. Configuration Files Created
 
 - **commitlint.config.js** - Commit message validation rules
-- **.releaserc.json** - Semantic-release configuration
+- **.releaserc.mjs** - Semantic-release configuration
 - **lefthook.yml** - Git hooks configuration
 - **.github/workflows/release.yml** - GitHub Actions workflow
 - **COMMIT_CONVENTION.md** - Documentation for your team
@@ -199,12 +199,15 @@ To publish to npm, add `NPM_TOKEN` to repository secrets:
 
 ### Change Release Branches
 
-Edit `.releaserc.json`:
+Edit `.releaserc.mjs`:
 
-```json
-{
-  "branches": ["main", "develop", {"name": "beta", "prerelease": true}]
-}
+```javascript
+const config = {
+  branches: ["main", "develop", {"name": "beta", "prerelease": true}],
+  // ... rest of config
+};
+
+export default config;
 ```
 
 ### Customize Commit Types

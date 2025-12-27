@@ -113,7 +113,7 @@ bunx lefthook install
 
 Edit these files:
 
-- `.releaserc.json` - Release configuration
+- `.releaserc.mjs` - Release configuration
 - `commitlint.config.js` - Commit rules
 - `.github/workflows/release.yml` - CI/CD workflow
 

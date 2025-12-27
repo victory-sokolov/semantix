@@ -27,12 +27,12 @@ describe("Conventional Commit Setup Class", () => {
     it("should create an instance with provided cwd", () => {
       const setup = new ConventionalCommitSetup(mockCwd);
       expect(setup).toBeInstanceOf(ConventionalCommitSetup);
-      expect((setup as any).cwd).toBe(mockCwd);
+      expect((setup as unknown as { cwd: string }).cwd).toBe(mockCwd);
     });
 
     it("should default to process.cwd() when no path provided", () => {
       const setup = new ConventionalCommitSetup();
-      expect((setup as any).cwd).toBe(process.cwd());
+      expect((setup as unknown as { cwd: string }).cwd).toBe(process.cwd());
     });
   });
 

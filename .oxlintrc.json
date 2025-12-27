@@ -19,6 +19,13 @@
     "no-useless-return": "error",
     "prefer-arrow-callback": "error",
     "prefer-template": "error",
-    "strict": ["error", "never"]
+    "strict": ["error", "never"],
+    "typescript/no-unused-vars": "error",
+    "typescript/no-explicit-any": "warn",
+    "typescript/prefer-as-const": "error",
+    "typescript/no-inferrable-types": "error",
+    "typescript/no-non-null-assertion": "warn",
+    "typescript/prefer-nullish-coalescing": "error",
+    "typescript/prefer-optional-chain": "error"
   }
 }

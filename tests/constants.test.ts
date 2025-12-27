@@ -79,7 +79,7 @@ describe("Configuration Constants", () => {
 
     it("should have changelog plugin with correct config", () => {
       const changelogPlugin = SEMANTIC_RELEASE_CONFIG.plugins.find(
-        (plugin: any) => Array.isArray(plugin) && plugin[0] === "@semantic-release/changelog",
+        (plugin: unknown) => Array.isArray(plugin) && plugin[0] === "@semantic-release/changelog",
       );
       expect(changelogPlugin).toEqual([
         "@semantic-release/changelog",

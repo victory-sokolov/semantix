@@ -30,9 +30,13 @@ export function createCommitlintConfig(cwd: string) {
 export function createSemanticReleaseConfig(cwd: string) {
   log("📝 Creating semantic-release configuration...", "info");
 
-  writeJsonFile(join(cwd, ".releaserc.json"), SEMANTIC_RELEASE_CONFIG);
+  const configContent = `const config = ${JSON.stringify(SEMANTIC_RELEASE_CONFIG, null, 2)};
 
-  log("✓ .releaserc.json created", "success");
+export default config;
+`;
+  writeTextFile(join(cwd, ".releaserc.mjs"), configContent);
+
+  log("✓ .releaserc.mjs created", "success");
 }
 
 export function setupLefthook(cwd: string) {
@@ -60,14 +64,80 @@ export function updatePackageJson(cwd: string) {
     prepare: "lefthook install",
   };
 
-  const packageJson = readJsonFile(packageJsonPath);
-  packageJson.scripts = {
-    ...packageJson.scripts,
-    ...scripts,
-  };
-  writeJsonFile(packageJsonPath, packageJson);
+  let packageJson: Record<string, unknown>;
+  try {
+    packageJson = readJsonFile(packageJsonPath) as Record<string, unknown>;
+  } catch (error) {
+    throw new Error(`Failed to read package.json: ${error}`);
+  }
 
-  log("✓ package.json updated", "success");
+  if (!packageJson.scripts || typeof packageJson.scripts !== "object") {
+    packageJson.scripts = {};
+  }
+
+  const existingScripts = packageJson.scripts as Record<string, string>;
+  const conflicts: string[] = [];
+  const mergedScripts: Record<string, string> = { ...existingScripts };
+
+  // Check for conflicts and handle them
+  for (const [key, value] of Object.entries(scripts)) {
+    if (existingScripts[key]) {
+      if (existingScripts[key] === value) {
+        // Same value, no conflict
+        continue;
+      }
+
+      conflicts.push(key);
+
+      // For prepare script, try to merge with existing prepare hooks
+      if (key === "prepare") {
+        const existing = existingScripts[key];
+        if (existing.includes("&&") || existing.includes("lefthook")) {
+          // Already has lefthook or multiple commands, append with &&
+          mergedScripts[key] = `${existing} && ${value}`;
+          log(`⚠️ Merged prepare script: "${existing}" + "${value}"`, "warning");
+        } else {
+          // Create namespaced alternative
+          mergedScripts[`${key}:lefthook`] = value;
+          log(
+            `⚠️ Conflict detected for "${key}". Preserving existing and adding "prepare:lefthook"`,
+            "warning",
+          );
+        }
+      } else {
+        // For other scripts, create namespaced alternatives
+        mergedScripts[`${key}:semantic`] = value;
+        log(
+          `⚠️ Conflict detected for "${key}". Preserving existing and adding "${key}:semantic"`,
+          "warning",
+        );
+      }
+    } else {
+      mergedScripts[key] = value;
+    }
+  }
+
+  // Create backup before writing
+  const backupPath = `${packageJsonPath}.backup`;
+  try {
+    const packageJsonContent = JSON.stringify(packageJson, null, 2);
+    writeTextFile(backupPath, packageJsonContent);
+  } catch (error) {
+    log(`⚠️ Failed to create backup: ${error}`, "warning");
+  }
+
+  // Update and write
+  packageJson.scripts = mergedScripts;
+  try {
+    writeJsonFile(packageJsonPath, packageJson);
+    log("✓ package.json updated", "success");
+
+    if (conflicts.length > 0) {
+      log(`ℹ️ Conflicts resolved for scripts: ${conflicts.join(", ")}`, "info");
+    }
+  } catch (error) {
+    throw new Error(`Failed to write package.json: ${error}`);
+  }
 }
 
 export function createGitHubWorkflow(cwd: string) {
