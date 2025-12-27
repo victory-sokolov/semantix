@@ -253,6 +253,37 @@ cd /path/to/test-project
 semantix
 ```
 
+### Testing
+
+```bash
+# Run tests
+bun run test
+
+# Run tests with UI
+bun run test:ui
+
+# Run tests once
+bun run test:run
+
+# Run tests with coverage
+bun run test:coverage
+
+# Type checking
+bun run type-check
+
+# Linting
+bun run lint
+
+# Fix linting issues
+bun run lint:fix
+
+# Code formatting
+bun run format
+
+# Check formatting
+bun run format:check
+```
+
 ### Publishing
 
 ```bash

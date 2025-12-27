@@ -34,6 +34,9 @@ jobs:
       - name: Format check
         run: bun run format:check
 
+      - name: Run tests
+        run: bun run test:run
+
   release:
     needs: ci
     runs-on: ubuntu-latest
