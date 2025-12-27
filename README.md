@@ -261,12 +261,6 @@ semantix
 # Run tests
 bun run test
 
-# Run tests with UI
-bun run test:ui
-
-# Run tests once
-bun run test:run
-
 # Run tests with coverage
 bun run test:coverage
 
