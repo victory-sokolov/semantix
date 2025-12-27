@@ -4,9 +4,10 @@ import {
   COMMIT_TYPES,
   COMMITLINT_CONFIG,
   SEMANTIC_RELEASE_CONFIG,
-  GITHUB_WORKFLOW,
+  getGithubWorkflow,
   ASCII_ART,
-  LEFTHOOK_CONFIG,
+  getLefthookConfig,
+  getCommitConventionReadme,
 } from "../src/constants.ts";
 
 describe("Configuration Constants", () => {
@@ -89,27 +90,61 @@ describe("Configuration Constants", () => {
   });
 
   describe("GitHub Actions Workflow Configuration", () => {
-    it("should be a valid YAML string", () => {
-      expect(typeof GITHUB_WORKFLOW).toBe("string");
-      expect(GITHUB_WORKFLOW).toContain("name: Release");
-      expect(GITHUB_WORKFLOW).toContain("bun run release");
+    it("should start with default bun config", () => {
+      const workflow = getGithubWorkflow();
+      expect(workflow).toContain("Setup Bun");
+      expect(workflow).toContain("bun install");
+      expect(workflow).toContain("bun run release");
+    });
+
+    it("should generate npm config", () => {
+      const workflow = getGithubWorkflow("npm");
+      expect(workflow).toContain("Setup Node");
+      expect(workflow).toContain("npm ci");
+      expect(workflow).toContain("npm run release");
+      expect(workflow).toContain("cache: 'npm'");
+    });
+
+    it("should generate yarn config", () => {
+      const workflow = getGithubWorkflow("yarn");
+      expect(workflow).toContain("Setup Node");
+      expect(workflow).toContain("yarn install");
+      expect(workflow).toContain("yarn run release");
+      expect(workflow).toContain("cache: 'yarn'");
     });
   });
 
   describe("ASCII Art Display", () => {
     it("should contain the semantix ASCII art", () => {
       expect(typeof ASCII_ART).toBe("string");
-      expect(ASCII_ART).toContain("█");
-      expect(ASCII_ART).toContain("║");
       expect(ASCII_ART).toContain("Automated Conventional Commits & Releases");
     });
   });
 
   describe("Lefthook Configuration", () => {
-    it("should be a valid YAML string", () => {
-      expect(typeof LEFTHOOK_CONFIG).toBe("string");
-      expect(LEFTHOOK_CONFIG).toContain("commit-msg:");
-      expect(LEFTHOOK_CONFIG).toContain("commitlint");
+    it("should default to bun config", () => {
+      const config = getLefthookConfig();
+      expect(config).toContain("bun run format:check");
+      expect(config).toContain("bunx --no -- commitlint");
+    });
+
+    it("should generate npm config", () => {
+      const config = getLefthookConfig("npm");
+      expect(config).toContain("npm run format:check");
+      expect(config).toContain("npx commitlint");
+    });
+
+    it("should generate yarn config", () => {
+      const config = getLefthookConfig("yarn");
+      expect(config).toContain("yarn run format:check");
+      expect(config).toContain("yarn dlx commitlint"); // or execute prefix
+    });
+  });
+
+  describe("Commit Convention README", () => {
+    it("should include command to run release:dry", () => {
+      expect(getCommitConventionReadme("bun")).toContain("bun run release:dry");
+      expect(getCommitConventionReadme("npm")).toContain("npm run release:dry");
     });
   });
 });

@@ -1,3 +1,13 @@
+
+export type PackageManager = "npm" | "yarn" | "pnpm" | "bun";
+
+export const PM_LOCK_FILES = {
+  npm: "package-lock.json",
+  yarn: "yarn.lock",
+  pnpm: "pnpm-lock.yaml",
+  bun: ["bun.lockb", "bun.lock"],
+} as const;
+
 export const DEPENDENCIES = [
   "@semantic-release/changelog",
   "@semantic-release/git",
@@ -58,7 +68,25 @@ export const SEMANTIC_RELEASE_CONFIG = {
   ],
 };
 
-export const GITHUB_WORKFLOW = `name: Release
+export const getGithubWorkflow = (pm: PackageManager = "bun") => {
+  const setupStep =
+    pm === "bun"
+      ? `
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest`
+      : `
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: '${pm}'`;
+
+  const installCmd = pm === "npm" ? "npm ci" : `${pm} install`;
+  const runCmd = pm === "bun" ? "bun run release" : `${pm} run release`;
+
+  return `name: Release
 
 on:
   push:
@@ -76,25 +104,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
+${setupStep}
 
       - name: Install dependencies
-        run: bun install
+        run: ${installCmd}
 
       - name: Release
         env:
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
-        run: bun run release
+        run: ${runCmd}
 `;
+};
 
-export const COMMIT_CONVENTION_README = `# Commit Convention
+export const getCommitConventionReadme = (pm: PackageManager = "bun") => {
+  const runCmd = pm === "bun" ? "bun run" : `${pm} run`;
+  
+  return `# Commit Convention
 
 This project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
@@ -138,8 +166,9 @@ Commits following this convention will automatically:
 - Publish GitHub releases
 - Bump version numbers
 
-Run \`bun run release:dry\` to preview the next release.
+Run \`${runCmd} release:dry\` to preview the next release.
 `;
+};
 
 export const ASCII_ART = `
 ╔══════════════════════════════════════════════════════════════════════╗
@@ -156,17 +185,28 @@ export const ASCII_ART = `
 ╚══════════════════════════════════════════════════════════════════════╝
 `;
 
-export const LEFTHOOK_CONFIG = `pre-commit:
+export const getLefthookConfig = (pm: PackageManager = "bun") => {
+  const runPrefix = pm === "bun" ? "bun run" : `${pm} run`;
+  const executePrefix = pm === "bun" ? "bunx" : pm === "npm" ? "npx" : pm === "yarn" ? "yarn dlx" : "pnpm dlx";
+  // actually for commitlint, we might standardise on using the locally installed one via the script runner or npx/bunx.
+  // bunx --no is specific.
+  
+  const commitlintCmd = pm === "bun" 
+    ? "bunx --no -- commitlint --edit {1}"
+    : `${executePrefix} commitlint --edit {1}`;
+
+  return `pre-commit:
   commands:
     format-check:
-      run: bun run format:check
+      run: ${runPrefix} format:check
     lint:
-      run: bun run lint
+      run: ${runPrefix} lint
     type-check:
-      run: bun run type-check
+      run: ${runPrefix} type-check
 
 commit-msg:
   commands:
     commitlint:
-      run: bunx --no -- commitlint --edit {1}
+      run: ${commitlintCmd}
 `;
+};

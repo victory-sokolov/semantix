@@ -3,9 +3,10 @@ import { existsSync } from "fs";
 import {
   COMMITLINT_CONFIG,
   SEMANTIC_RELEASE_CONFIG,
-  GITHUB_WORKFLOW,
-  COMMIT_CONVENTION_README,
-  LEFTHOOK_CONFIG,
+  getGithubWorkflow,
+  getCommitConventionReadme,
+  getLefthookConfig,
+  type PackageManager,
 } from "./constants";
 import {
   log,
@@ -39,15 +40,29 @@ export default config;
   log("✓ .releaserc.mjs created", "success");
 }
 
-export function setupLefthook(cwd: string) {
+export function setupLefthook(cwd: string, pm: PackageManager) {
   log("🥊 Setting up Lefthook...", "info");
 
   // Create lefthook.yml
-  writeTextFile(join(cwd, "lefthook.yml"), LEFTHOOK_CONFIG);
+  writeTextFile(join(cwd, "lefthook.yml"), getLefthookConfig(pm));
 
   // Install Lefthook
   try {
-    execCommand("bunx lefthook install", cwd);
+    const installCmd = pm === "bun" ? "bunx lefthook install" : "npx lefthook install";
+    // Or maybe just `npx lefthook install` works for all except maybe pnpm might warn?
+    // pnpm dlx lefthook install?
+    // yarn dlx lefthook install?
+    
+    // Simplest is trying to use the package manager's execute command if possible, 
+    // but `npx` usually works with node. 
+    // If it is bun, we used bunx.
+    // Let's stick to npx for others for now or map it.
+    let execCmd = "npx lefthook install";
+    if (pm === "bun") execCmd = "bunx lefthook install";
+    if (pm === "yarn") execCmd = "yarn dlx lefthook install";
+    if (pm === "pnpm") execCmd = "pnpm dlx lefthook install";
+
+    execCommand(execCmd, cwd);
     log("✓ Lefthook installed and configured", "success");
   } catch (error) {
     log(`⚠️ Failed to run 'lefthook install': ${error}`, "warning");
@@ -140,18 +155,18 @@ export function updatePackageJson(cwd: string) {
   }
 }
 
-export function createGitHubWorkflow(cwd: string) {
+export function createGitHubWorkflow(cwd: string, pm: PackageManager) {
   log("🔄 Creating GitHub Actions workflow...", "info");
 
   const workflowDir = join(cwd, ".github", "workflows");
   ensureDirectoryExists(workflowDir);
 
-  writeTextFile(join(workflowDir, "release.yml"), GITHUB_WORKFLOW);
+  writeTextFile(join(workflowDir, "release.yml"), getGithubWorkflow(pm));
 
   log("✓ GitHub Actions workflow created", "success");
 }
 
-export function createReadme(cwd: string) {
+export function createReadme(cwd: string, pm: PackageManager) {
   const readmePath = join(cwd, "COMMIT_CONVENTION.md");
 
   if (existsSync(readmePath)) {
@@ -159,6 +174,6 @@ export function createReadme(cwd: string) {
     return;
   }
 
-  writeTextFile(readmePath, COMMIT_CONVENTION_README);
+  writeTextFile(readmePath, getCommitConventionReadme(pm));
   log("✓ COMMIT_CONVENTION.md created", "success");
 }

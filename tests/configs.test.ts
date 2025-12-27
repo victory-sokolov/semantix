@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { join } from "path";
 
 // Mock the fs module
@@ -71,7 +71,7 @@ describe("Configuration File Generators", () => {
 
   describe("Lefthook Git Hooks Setup", () => {
     it("should create lefthook.yml and run install command", () => {
-      setupLefthook(mockCwd);
+      setupLefthook(mockCwd, "bun");
 
       expect(writeTextFile).toHaveBeenCalledWith(join(mockCwd, "lefthook.yml"), expect.any(String));
       expect(execCommand).toHaveBeenCalledWith("bunx lefthook install", mockCwd);
@@ -98,7 +98,7 @@ describe("Configuration File Generators", () => {
 
   describe("GitHub Actions Workflow Creation", () => {
     it("should create workflow directory and release.yml file", () => {
-      createGitHubWorkflow(mockCwd);
+      createGitHubWorkflow(mockCwd, "bun");
 
       expect(ensureDirectoryExists).toHaveBeenCalledWith(join(mockCwd, ".github", "workflows"));
       expect(writeTextFile).toHaveBeenCalledWith(
@@ -112,11 +112,11 @@ describe("Configuration File Generators", () => {
     beforeEach(() => {
       vi.clearAllMocks();
       // Reset existsSync to default (false)
-      vi.mocked(existsSync).mockReturnValue(false);
+      (existsSync as unknown as Mock).mockReturnValue(false);
     });
 
     it("should create README when file does not exist", () => {
-      createReadme(mockCwd);
+      createReadme(mockCwd, "bun");
 
       expect(writeTextFile).toHaveBeenCalledWith(
         expect.stringContaining("COMMIT_CONVENTION.md"),
@@ -126,9 +126,9 @@ describe("Configuration File Generators", () => {
 
     it("should skip creation when file already exists", () => {
       // Mock existsSync to return true (file exists)
-      vi.mocked(existsSync).mockReturnValue(true);
+      (existsSync as unknown as Mock).mockReturnValue(true);
 
-      createReadme(mockCwd);
+      createReadme(mockCwd, "bun");
 
       expect(writeFileSync).not.toHaveBeenCalled();
     });

@@ -5,6 +5,8 @@ import { ConventionalCommitSetup } from "../src/setup.ts";
 vi.mock("../src/utils.ts", () => ({
   log: vi.fn(),
   execCommand: vi.fn(),
+  detectPackageManager: vi.fn(() => "bun"),
+  getInstallCommand: vi.fn(() => "bun add -D dependencies"),
 }));
 
 vi.mock("../src/configs.ts", () => ({

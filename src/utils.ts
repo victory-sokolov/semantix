@@ -1,5 +1,8 @@
 import { execSync } from "child_process";
 import { existsSync, writeFileSync, readFileSync, mkdirSync } from "fs";
+import { join } from "path";
+import { PM_LOCK_FILES, type PackageManager } from "./constants";
+
 
 export function log(message: string, type: "info" | "success" | "error" | "warning" = "info") {
   const colors = {
@@ -47,4 +50,32 @@ export function updatePackageJsonScripts(packageJsonPath: string, scripts: Recor
     ...scripts,
   };
   writeJsonFile(packageJsonPath, packageJson);
+}
+
+export function detectPackageManager(cwd: string): PackageManager {
+  // Check for lock files
+  for (const [pm, lockFiles] of Object.entries(PM_LOCK_FILES)) {
+    const files = Array.isArray(lockFiles) ? lockFiles : [lockFiles];
+    if (files.some((file) => existsSync(join(cwd, file)))) {
+      return pm as PackageManager;
+    }
+  }
+  
+  // Default to bun if no lock file found, or maybe check what ran the script?
+  // But requirement says determine based on lock file.
+  return "bun";
+}
+
+export function getInstallCommand(pm: PackageManager, dependencies: string[]): string {
+  const deps = dependencies.join(" ");
+  switch (pm) {
+    case "npm":
+      return `npm install -D ${deps}`;
+    case "yarn":
+      return `yarn add -D ${deps}`;
+    case "pnpm":
+      return `pnpm add -D ${deps}`;
+    case "bun":
+      return `bun add -D ${deps}`;
+  }
 }
