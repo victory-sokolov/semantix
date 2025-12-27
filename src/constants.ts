@@ -62,9 +62,9 @@ export const GITHUB_WORKFLOW = `name: Release
 
 on:
   push:
-    branches:
-      - main
-      - master
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -156,7 +156,16 @@ export const ASCII_ART = `
 ╚═══════════════════════════════════════════════════════════════╝
 `;
 
-export const LEFTHOOK_CONFIG = `commit-msg:
+export const LEFTHOOK_CONFIG = `pre-commit:
+  commands:
+    format-check:
+      run: bun run format:check
+    lint:
+      run: bun run lint
+    type-check:
+      run: bun run type-check
+
+commit-msg:
   commands:
     commitlint:
       run: bunx --no -- commitlint --edit {1}

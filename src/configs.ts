@@ -21,7 +21,7 @@ export function createCommitlintConfig(cwd: string) {
 
   writeTextFile(
     join(cwd, "commitlint.config.js"),
-    `module.exports = ${JSON.stringify(COMMITLINT_CONFIG, null, 2)};`,
+    `export default ${JSON.stringify(COMMITLINT_CONFIG, null, 2)};`,
   );
 
   log("✓ commitlint.config.js created", "success");
