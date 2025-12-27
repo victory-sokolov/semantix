@@ -49,7 +49,7 @@ describe("Configuration File Generators", () => {
 
       expect(writeTextFile).toHaveBeenCalledWith(
         join(mockCwd, "commitlint.config.js"),
-        expect.stringContaining("module.exports ="),
+        expect.stringContaining("export default"),
       );
     });
   });

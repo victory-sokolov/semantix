@@ -28,8 +28,6 @@
     "format:check": "oxfmt --check",
     "type-check": "tsc --noEmit",
     "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "prepublishOnly": "bun run build",
     "commit": "cz",
