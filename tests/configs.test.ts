@@ -15,7 +15,9 @@ vi.mock("../src/utils.ts", () => ({
 vi.mock("fs", () => ({
   existsSync: vi.fn(() => false),
   writeFileSync: vi.fn(),
-  readFileSync: vi.fn(() => JSON.stringify({ name: "test-package", version: "1.0.0", scripts: {} })),
+  readFileSync: vi.fn(() =>
+    JSON.stringify({ name: "test-package", version: "1.0.0", scripts: {} }),
+  ),
   mkdirSync: vi.fn(),
 }));
 
