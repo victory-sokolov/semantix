@@ -1,110 +1,102 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { join } from "path";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { join } from 'path';
 
 // Mock the utils module
-vi.mock("../src/utils.ts", () => ({
-  log: vi.fn(),
-  writeJsonFile: vi.fn(),
-  writeTextFile: vi.fn(),
-  ensureDirectoryExists: vi.fn(),
-  execCommand: vi.fn(),
-  readJsonFile: vi.fn(() => ({ name: "test-package", version: "1.0.0", scripts: {} })),
+vi.mock('../src/utils.ts', () => ({
+    log: vi.fn(),
+    writeJsonFile: vi.fn(),
+    writeTextFile: vi.fn(),
+    ensureDirectoryExists: vi.fn(),
+    execCommand: vi.fn(),
+    readJsonFile: vi.fn(() => ({ name: 'test-package', version: '1.0.0', scripts: {} })),
 }));
 
 // Mock the fs module
-vi.mock("fs", () => ({
-  existsSync: vi.fn(() => false),
-  writeFileSync: vi.fn(),
-  readFileSync: vi.fn(() =>
-    JSON.stringify({ name: "test-package", version: "1.0.0", scripts: {} }),
-  ),
-  mkdirSync: vi.fn(),
+vi.mock('fs', () => ({
+    existsSync: vi.fn(() => false),
+    writeFileSync: vi.fn(),
+    readFileSync: vi.fn(() => JSON.stringify({ name: 'test-package', version: '1.0.0', scripts: {} })),
+    mkdirSync: vi.fn(),
 }));
 
 import {
-  createCommitlintConfig,
-  createSemanticReleaseConfig,
-  setupLefthook,
-  updatePackageJson,
-  createGitHubWorkflow,
-} from "../src/configs.ts";
-import {
-  writeTextFile,
-  ensureDirectoryExists,
-  execCommand,
-  readJsonFile,
-  writeJsonFile,
-} from "../src/utils.ts";
+    createCommitlintConfig,
+    createSemanticReleaseConfig,
+    setupLefthook,
+    updatePackageJson,
+    createGitHubWorkflow,
+} from '../src/configs.ts';
+import { writeTextFile, ensureDirectoryExists, execCommand, readJsonFile, writeJsonFile } from '../src/utils.ts';
 
-describe("Configuration File Generators", () => {
-  const mockCwd = "/test/project";
+describe('Configuration File Generators', () => {
+    const mockCwd = '/test/project';
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  describe("Commitlint Configuration Creation", () => {
-    it("should create commitlint.config.js with correct content", () => {
-      createCommitlintConfig(mockCwd);
-
-      expect(writeTextFile).toHaveBeenCalledWith(
-        join(mockCwd, "commitlint.config.js"),
-        expect.stringContaining("export default"),
-      );
+    beforeEach(() => {
+        vi.clearAllMocks();
     });
-  });
 
-  describe("Semantic Release Configuration Creation", () => {
-    it("should create .releaserc.mjs with correct content", () => {
-      createSemanticReleaseConfig(mockCwd);
+    describe('Commitlint Configuration Creation', () => {
+        it('should create commitlint.config.js with correct content', () => {
+            createCommitlintConfig(mockCwd);
 
-      expect(writeTextFile).toHaveBeenCalledWith(
-        join(mockCwd, ".releaserc.mjs"),
-        expect.stringContaining("const config ="),
-      );
-      expect(writeTextFile).toHaveBeenCalledWith(
-        join(mockCwd, ".releaserc.mjs"),
-        expect.stringContaining("export default config"),
-      );
+            expect(writeTextFile).toHaveBeenCalledWith(
+                join(mockCwd, 'commitlint.config.js'),
+                expect.stringContaining('export default'),
+            );
+        });
     });
-  });
 
-  describe("Lefthook Git Hooks Setup", () => {
-    it("should create lefthook.yml and run install command", () => {
-      setupLefthook(mockCwd, "bun");
+    describe('Semantic Release Configuration Creation', () => {
+        it('should create .releaserc.mjs with correct content', () => {
+            createSemanticReleaseConfig(mockCwd);
 
-      expect(writeTextFile).toHaveBeenCalledWith(join(mockCwd, "lefthook.yml"), expect.any(String));
-      expect(execCommand).toHaveBeenCalledWith("bunx lefthook install", mockCwd);
+            expect(writeTextFile).toHaveBeenCalledWith(
+                join(mockCwd, '.releaserc.mjs'),
+                expect.stringContaining('const config ='),
+            );
+            expect(writeTextFile).toHaveBeenCalledWith(
+                join(mockCwd, '.releaserc.mjs'),
+                expect.stringContaining('export default config'),
+            );
+        });
     });
-  });
 
-  describe("Package.json Scripts Update", () => {
-    it("should read and update package.json with scripts", () => {
-      updatePackageJson(mockCwd);
+    describe('Lefthook Git Hooks Setup', () => {
+        it('should create lefthook.yml and run install command', () => {
+            setupLefthook(mockCwd, 'bun');
 
-      expect(readJsonFile).toHaveBeenCalledWith(join(mockCwd, "package.json"));
-      expect(writeJsonFile).toHaveBeenCalledWith(
-        join(mockCwd, "package.json"),
-        expect.objectContaining({
-          scripts: expect.objectContaining({
-            release: "semantic-release",
-            "release:dry": "semantic-release --dry-run",
-            prepare: "lefthook install",
-          }),
-        }),
-      );
+            expect(writeTextFile).toHaveBeenCalledWith(join(mockCwd, 'lefthook.yml'), expect.any(String));
+            expect(execCommand).toHaveBeenCalledWith('bunx lefthook install', mockCwd);
+        });
     });
-  });
 
-  describe("GitHub Actions Workflow Creation", () => {
-    it("should create workflow directory and release.yml file", () => {
-      createGitHubWorkflow(mockCwd, "bun");
+    describe('Package.json Scripts Update', () => {
+        it('should read and update package.json with scripts', () => {
+            updatePackageJson(mockCwd);
 
-      expect(ensureDirectoryExists).toHaveBeenCalledWith(join(mockCwd, ".github", "workflows"));
-      expect(writeTextFile).toHaveBeenCalledWith(
-        join(mockCwd, ".github", "workflows", "release.yml"),
-        expect.any(String),
-      );
+            expect(readJsonFile).toHaveBeenCalledWith(join(mockCwd, 'package.json'));
+            expect(writeJsonFile).toHaveBeenCalledWith(
+                join(mockCwd, 'package.json'),
+                expect.objectContaining({
+                    scripts: expect.objectContaining({
+                        release: 'semantic-release',
+                        'release:dry': 'semantic-release --dry-run',
+                        prepare: 'lefthook install',
+                    }),
+                }),
+            );
+        });
     });
-  });
+
+    describe('GitHub Actions Workflow Creation', () => {
+        it('should create workflow directory and release.yml file', () => {
+            createGitHubWorkflow(mockCwd, 'bun');
+
+            expect(ensureDirectoryExists).toHaveBeenCalledWith(join(mockCwd, '.github', 'workflows'));
+            expect(writeTextFile).toHaveBeenCalledWith(
+                join(mockCwd, '.github', 'workflows', 'release.yml'),
+                expect.any(String),
+            );
+        });
+    });
 });

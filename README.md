@@ -156,11 +156,11 @@ BREAKING CHANGE: The authentication API has been completely redesigned"
 2. **Push** to `main` or `master` branch
 3. **GitHub Actions** runs automatically
 4. **Semantic-release** analyzes commits and:
-   - Determines version bump (major/minor/patch)
-   - Generates CHANGELOG.md
-   - Creates git tag
-   - Publishes GitHub release
-   - Updates package.json version
+    - Determines version bump (major/minor/patch)
+    - Generates CHANGELOG.md
+    - Creates git tag
+    - Publishes GitHub release
+    - Updates package.json version
 
 ### Version Bumping
 

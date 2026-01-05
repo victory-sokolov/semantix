@@ -1,33 +1,9 @@
 {
-  "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "ignorePatterns": [],
-  "languageSettings": {
-    "javascript": {
-      "formatter": {
-        "indentStyle": "space",
-        "indentWidth": 4,
-        "lineWidth": 120,
-        "quoteStyle": "single",
-        "trailingComma": "all",
-        "semicolons": "always"
-      }
-    },
-    "typescript": {
-      "formatter": {
-        "indentStyle": "space",
-        "indentWidth": 4,
-        "lineWidth": 120,
-        "quoteStyle": "single",
-        "trailingComma": "all",
-        "semicolons": "always"
-      }
-    },
-    "json": {
-      "formatter": {
-        "indentStyle": "space",
-        "indentWidth": 4,
-        "lineWidth": 120
-      }
-    }
-  }
+    "$schema": "./node_modules/oxfmt/configuration_schema.json",
+    "ignorePatterns": [],
+    "tabWidth": 4,
+    "printWidth": 120,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "semi": true
 }
