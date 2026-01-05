@@ -1,13 +1,14 @@
 import { expect, spyOn } from 'bun:test';
 import { join } from 'path';
 import { mkdirSync, rmSync, existsSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
 import * as configs from '../src/configs.ts';
 import * as utils from '../src/utils.ts';
 
 export function createTempDir(prefix: string): string {
     const timestamp = Date.now();
     const random = Math.random().toString(36).slice(2, 11);
-    const tempDir = join(process.cwd(), `${prefix}-${timestamp}-${random}`);
+    const tempDir = join(tmpdir(), `${prefix}-${timestamp}-${random}`);
     mkdirSync(tempDir, { recursive: true });
     return tempDir;
 }
