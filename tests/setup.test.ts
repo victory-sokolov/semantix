@@ -15,6 +15,7 @@ describe('Conventional Commit Setup Class', () => {
     let tempDir: string;
     let consoleLogSpy: ReturnType<typeof spyOn>;
     let consoleErrorSpy: ReturnType<typeof spyOn>;
+    let mocks: ReturnType<typeof mockConfigsAndUtils> | null = null;
 
     beforeEach(() => {
         tempDir = createTempDir('temp-test-setup');
@@ -27,6 +28,11 @@ describe('Conventional Commit Setup Class', () => {
         cleanupTempDir(tempDir);
         consoleLogSpy.mockRestore();
         consoleErrorSpy.mockRestore();
+
+        if (mocks) {
+            Object.values(mocks).forEach((mock) => mock.mockRestore());
+            mocks = null;
+        }
     });
 
     describe('Class Instantiation', () => {
@@ -77,7 +83,7 @@ describe('Conventional Commit Setup Class', () => {
         });
 
         it('should return a promise', () => {
-            mockConfigsAndUtils();
+            mocks = mockConfigsAndUtils();
 
             const setup = new ConventionalCommitSetup();
             const result = setup.setup();
@@ -85,7 +91,7 @@ describe('Conventional Commit Setup Class', () => {
         });
 
         it('should call all configuration functions in order', async () => {
-            const mocks = mockConfigsAndUtils();
+            mocks = mockConfigsAndUtils();
 
             createTestPackageFile(tempDir);
             createBunLockFile(tempDir);
@@ -102,10 +108,10 @@ describe('Conventional Commit Setup Class', () => {
         });
 
         it('should handle errors and log error message', async () => {
-            spyOn(utils, 'execCommand').mockImplementation(() => {
+            const execSpy = spyOn(utils, 'execCommand').mockImplementation(() => {
                 throw new Error('Test error');
             });
-            spyOn(configs, 'createCommitlintConfig').mockImplementation(() => {});
+            const configSpy = spyOn(configs, 'createCommitlintConfig').mockImplementation(() => {});
 
             createTestPackageFile(tempDir);
             createBunLockFile(tempDir);
@@ -113,12 +119,15 @@ describe('Conventional Commit Setup Class', () => {
             const setup = new ConventionalCommitSetup(tempDir);
 
             await expect(setup.setup()).rejects.toThrow();
+
+            execSpy.mockRestore();
+            configSpy.mockRestore();
         });
     });
 
     describe('installDependencies', () => {
         it('should call execCommand with correct install command', () => {
-            const mocks = mockConfigsAndUtils();
+            mocks = mockConfigsAndUtils();
 
             createTestPackageFile(tempDir);
             createBunLockFile(tempDir);
