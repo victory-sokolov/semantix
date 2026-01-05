@@ -5,7 +5,9 @@ import * as configs from '../src/configs.ts';
 import * as utils from '../src/utils.ts';
 
 export function createTempDir(prefix: string): string {
-    const tempDir = join(process.cwd(), `${prefix}-${Math.random().toString(36).slice(2, 9)}`);
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).slice(2, 11);
+    const tempDir = join(process.cwd(), `${prefix}-${timestamp}-${random}`);
     mkdirSync(tempDir, { recursive: true });
     return tempDir;
 }

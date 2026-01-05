@@ -33,6 +33,37 @@ describe('Configuration File Generators', () => {
         execCommandSpy.mockRestore();
     });
 
+    describe('File System Verification', () => {
+        it('should verify temp directory is created', () => {
+            expect(existsSync(tempDir)).toBe(true);
+        });
+
+        it('should be able to create and read files', () => {
+            const testFile = join(tempDir, 'test-file.txt');
+            writeFileSync(testFile, 'test content');
+            expect(existsSync(testFile)).toBe(true);
+            const content = readFileSync(testFile, 'utf-8');
+            expect(content).toBe('test content');
+        });
+
+        it('should be able to call utility write functions', () => {
+            const testFile = join(tempDir, 'test-util.txt');
+            utils.writeTextFile(testFile, 'util content');
+            expect(existsSync(testFile)).toBe(true);
+            const content = readFileSync(testFile, 'utf-8');
+            expect(content).toBe('util content');
+        });
+
+        it('should be able to call utility writeJsonFile', () => {
+            const testFile = join(tempDir, 'test-json.json');
+            utils.writeJsonFile(testFile, { key: 'value' });
+            expect(existsSync(testFile)).toBe(true);
+            const content = readFileSync(testFile, 'utf-8');
+            const parsed = JSON.parse(content);
+            expect(parsed).toEqual({ key: 'value' });
+        });
+    });
+
     describe('Exported Functions', () => {
         it('should export createCommitlintConfig', () => {
             expect(typeof createCommitlintConfig).toBe('function');
