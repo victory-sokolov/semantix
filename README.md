@@ -107,11 +107,11 @@ your-project/
 
 ```json
 {
-  "scripts": {
-    "release": "semantic-release",
-    "release:dry": "semantic-release --dry-run",
-    "prepare": "lefthook install"
-  }
+    "scripts": {
+        "release": "semantic-release",
+        "release:dry": "semantic-release --dry-run",
+        "prepare": "lefthook install"
+    }
 }
 ```
 
@@ -203,8 +203,8 @@ Edit `.releaserc.mjs`:
 
 ```javascript
 const config = {
-  branches: ["main", "develop", {"name": "beta", "prerelease": true}],
-  // ... rest of config
+    branches: ['main', 'develop', { name: 'beta', prerelease: true }],
+    // ... rest of config
 };
 
 export default config;
@@ -216,14 +216,10 @@ Edit `commitlint.config.js`:
 
 ```javascript
 module.exports = {
-  extends: ["@commitlint/config-conventional"],
-  rules: {
-    "type-enum": [
-      2,
-      "always",
-      ["feat", "fix", "docs", "custom-type"]
-    ]
-  }
+    extends: ['@commitlint/config-conventional'],
+    rules: {
+        'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'custom-type']],
+    },
 };
 ```
 
