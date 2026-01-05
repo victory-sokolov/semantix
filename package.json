@@ -36,7 +36,8 @@
         "prepare": "bunx lefthook install"
     },
     "dependencies": {
-        "@types/node": "25.0.3"
+        "@types/node": "25.0.3",
+        "jscpd": "4.0.5"
     },
     "devDependencies": {
         "@commitlint/cli": "^20.2.0",
