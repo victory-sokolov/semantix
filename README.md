@@ -265,7 +265,7 @@ bun run test
 bun run test:coverage
 
 # Type checking
-bun run type-check
+bun run typecheck
 
 # Linting
 bun run lint
