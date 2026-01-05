@@ -1,5 +1,11 @@
 import { describe, it, expect, spyOn } from 'bun:test';
-import { createCommitlintConfig, createSemanticReleaseConfig, setupLefthook, updatePackageJson, createGitHubWorkflow } from '../src/configs.ts';
+import {
+    createCommitlintConfig,
+    createSemanticReleaseConfig,
+    setupLefthook,
+    updatePackageJson,
+    createGitHubWorkflow,
+} from '../src/configs.ts';
 
 describe('Configuration File Generators', () => {
     // Spy on console to prevent output during tests

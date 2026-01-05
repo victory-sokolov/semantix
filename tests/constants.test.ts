@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'bun:test';
-import { DEPENDENCIES, COMMIT_TYPES, COMMITLINT_CONFIG, SEMANTIC_RELEASE_CONFIG, getGithubWorkflow, ASCII_ART, getLefthookConfig } from '../src/constants.ts';
+import {
+    DEPENDENCIES,
+    COMMIT_TYPES,
+    COMMITLINT_CONFIG,
+    SEMANTIC_RELEASE_CONFIG,
+    getGithubWorkflow,
+    ASCII_ART,
+    getLefthookConfig,
+} from '../src/constants.ts';
 
 describe('Configuration Constants', () => {
     describe('Project Dependencies Configuration', () => {
@@ -73,10 +81,7 @@ describe('Configuration Constants', () => {
             const changelogPlugin = SEMANTIC_RELEASE_CONFIG.plugins.find(
                 (plugin: unknown) => Array.isArray(plugin) && plugin[0] === '@semantic-release/changelog',
             );
-            expect(changelogPlugin).toEqual([
-                '@semantic-release/changelog',
-                { changelogFile: 'CHANGELOG.md' },
-            ]);
+            expect(changelogPlugin).toEqual(['@semantic-release/changelog', { changelogFile: 'CHANGELOG.md' }]);
         });
     });
 
