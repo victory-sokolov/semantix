@@ -1,10 +1,8 @@
 import { join } from "path";
-import { existsSync } from "fs";
 import {
   COMMITLINT_CONFIG,
   SEMANTIC_RELEASE_CONFIG,
   getGithubWorkflow,
-  getCommitConventionReadme,
   getLefthookConfig,
   type PackageManager,
 } from "./constants";
@@ -22,7 +20,7 @@ export function createCommitlintConfig(cwd: string) {
 
   writeTextFile(
     join(cwd, "commitlint.config.js"),
-    `export default ${JSON.stringify(COMMITLINT_CONFIG, null, 2)};`,
+    `export default ${JSON.stringify(COMMITLINT_CONFIG, null, 4)};`,
   );
 
   log("✓ commitlint.config.js created", "success");
@@ -31,7 +29,7 @@ export function createCommitlintConfig(cwd: string) {
 export function createSemanticReleaseConfig(cwd: string) {
   log("📝 Creating semantic-release configuration...", "info");
 
-  const configContent = `const config = ${JSON.stringify(SEMANTIC_RELEASE_CONFIG, null, 2)};
+  const configContent = `const config = ${JSON.stringify(SEMANTIC_RELEASE_CONFIG, null, 4)};
 
 export default config;
 `;
@@ -129,15 +127,6 @@ export function updatePackageJson(cwd: string) {
     }
   }
 
-  // Create backup before writing
-  const backupPath = `${packageJsonPath}.backup`;
-  try {
-    const packageJsonContent = JSON.stringify(packageJson, null, 2);
-    writeTextFile(backupPath, packageJsonContent);
-  } catch (error) {
-    log(`⚠️ Failed to create backup: ${error}`, "warning");
-  }
-
   // Update and write
   packageJson.scripts = mergedScripts;
   try {
@@ -161,16 +150,4 @@ export function createGitHubWorkflow(cwd: string, pm: PackageManager) {
   writeTextFile(join(workflowDir, "release.yml"), getGithubWorkflow(pm));
 
   log("✓ GitHub Actions workflow created", "success");
-}
-
-export function createReadme(cwd: string, pm: PackageManager) {
-  const readmePath = join(cwd, "COMMIT_CONVENTION.md");
-
-  if (existsSync(readmePath)) {
-    log("ℹ️  COMMIT_CONVENTION.md already exists, skipping", "info");
-    return;
-  }
-
-  writeTextFile(readmePath, getCommitConventionReadme(pm));
-  log("✓ COMMIT_CONVENTION.md created", "success");
 }

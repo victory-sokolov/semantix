@@ -30,7 +30,7 @@ export function ensureDirectoryExists(dirPath: string) {
 }
 
 export function writeJsonFile(filePath: string, data: unknown) {
-  writeFileSync(filePath, JSON.stringify(data, null, 2));
+  writeFileSync(filePath, JSON.stringify(data, null, 4));
 }
 
 export function writeTextFile(filePath: string, content: string) {

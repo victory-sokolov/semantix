@@ -115,58 +115,7 @@ ${setupStep}
         env:
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
         run: ${runCmd}
-`;
-};
-
-export const getCommitConventionReadme = (pm: PackageManager = "bun") => {
-  const runCmd = pm === "bun" ? "bun run" : `${pm} run`;
-
-  return `# Commit Convention
-
-This project uses [Conventional Commits](https://www.conventionalcommits.org/).
-
-## Format
-
-\`\`\`
-<type>[optional scope]: <description>
-
-[optional body]
-
-[optional footer(s)]
-\`\`\`
-
-## Types
-
-- **feat**: A new feature
-- **fix**: A bug fix
-- **docs**: Documentation only changes
-- **style**: Changes that don't affect code meaning (formatting, etc.)
-- **refactor**: Code change that neither fixes a bug nor adds a feature
-- **perf**: Code change that improves performance
-- **test**: Adding missing tests or correcting existing tests
-- **build**: Changes that affect the build system or dependencies
-- **ci**: Changes to CI configuration files and scripts
-- **chore**: Other changes that don't modify src or test files
-- **revert**: Reverts a previous commit
-
-## Examples
-
-\`\`\`
-feat: add user authentication
-fix: resolve memory leak in data processing
-docs: update installation instructions
-\`\`\`
-
-## Automated Release
-
-Commits following this convention will automatically:
-- Generate CHANGELOG.md
-- Create git tags
-- Publish GitHub releases
-- Bump version numbers
-
-Run \`${runCmd} release:dry\` to preview the next release.
-`;
+  `;
 };
 
 export const ASCII_ART = `

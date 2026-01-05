@@ -1,13 +1,5 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { join } from "path";
-
-// Mock the fs module
-vi.mock("fs", () => ({
-  existsSync: vi.fn(() => false),
-  writeFileSync: vi.fn(),
-  readFileSync: vi.fn(),
-  mkdirSync: vi.fn(),
-}));
 
 // Mock the utils module
 vi.mock("../src/utils.ts", () => ({
@@ -16,17 +8,23 @@ vi.mock("../src/utils.ts", () => ({
   writeTextFile: vi.fn(),
   ensureDirectoryExists: vi.fn(),
   execCommand: vi.fn(),
-  readJsonFile: vi.fn(() => ({ scripts: {} })),
+  readJsonFile: vi.fn(() => ({ name: "test-package", version: "1.0.0", scripts: {} })),
 }));
 
-import { existsSync, writeFileSync } from "fs";
+// Mock the fs module
+vi.mock("fs", () => ({
+  existsSync: vi.fn(() => false),
+  writeFileSync: vi.fn(),
+  readFileSync: vi.fn(() => JSON.stringify({ name: "test-package", version: "1.0.0", scripts: {} })),
+  mkdirSync: vi.fn(),
+}));
+
 import {
   createCommitlintConfig,
   createSemanticReleaseConfig,
   setupLefthook,
   updatePackageJson,
   createGitHubWorkflow,
-  createReadme,
 } from "../src/configs.ts";
 import {
   writeTextFile,
@@ -105,32 +103,6 @@ describe("Configuration File Generators", () => {
         join(mockCwd, ".github", "workflows", "release.yml"),
         expect.any(String),
       );
-    });
-  });
-
-  describe("Commit Convention README Creation", () => {
-    beforeEach(() => {
-      vi.clearAllMocks();
-      // Reset existsSync to default (false)
-      (existsSync as unknown as Mock).mockReturnValue(false);
-    });
-
-    it("should create README when file does not exist", () => {
-      createReadme(mockCwd, "bun");
-
-      expect(writeTextFile).toHaveBeenCalledWith(
-        expect.stringContaining("COMMIT_CONVENTION.md"),
-        expect.any(String),
-      );
-    });
-
-    it("should skip creation when file already exists", () => {
-      // Mock existsSync to return true (file exists)
-      (existsSync as unknown as Mock).mockReturnValue(true);
-
-      createReadme(mockCwd, "bun");
-
-      expect(writeFileSync).not.toHaveBeenCalled();
     });
   });
 });

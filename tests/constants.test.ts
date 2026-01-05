@@ -7,7 +7,6 @@ import {
   getGithubWorkflow,
   ASCII_ART,
   getLefthookConfig,
-  getCommitConventionReadme,
 } from "../src/constants.ts";
 
 describe("Configuration Constants", () => {
@@ -138,13 +137,6 @@ describe("Configuration Constants", () => {
       const config = getLefthookConfig("yarn");
       expect(config).toContain("yarn run format:check");
       expect(config).toContain("yarn dlx commitlint"); // or execute prefix
-    });
-  });
-
-  describe("Commit Convention README", () => {
-    it("should include command to run release:dry", () => {
-      expect(getCommitConventionReadme("bun")).toContain("bun run release:dry");
-      expect(getCommitConventionReadme("npm")).toContain("npm run release:dry");
     });
   });
 });

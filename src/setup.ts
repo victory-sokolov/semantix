@@ -6,7 +6,6 @@ import {
   setupLefthook,
   updatePackageJson,
   createGitHubWorkflow,
-  createReadme,
 } from "./configs";
 
 export class ConventionalCommitSetup {
@@ -40,7 +39,6 @@ export class ConventionalCommitSetup {
       setupLefthook(this.cwd, this.packageManager);
       updatePackageJson(this.cwd);
       createGitHubWorkflow(this.cwd, this.packageManager);
-      createReadme(this.cwd, this.packageManager);
 
       log("\n✨ Setup completed successfully!\n", "success");
 
