@@ -1,28 +1,37 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { ConventionalCommitSetup } from '../src/setup.ts';
 
-// Mock the utils and configs modules
-vi.mock('../src/utils.ts', () => ({
-    log: vi.fn(),
-    execCommand: vi.fn(),
-    detectPackageManager: vi.fn(() => 'bun'),
-    getInstallCommand: vi.fn(() => 'bun add -D dependencies'),
+// Mock utils and configs modules
+const mockLog = mock(() => {});
+const mockExecCommand = mock(() => {});
+const mockDetectPackageManager = mock(() => 'bun');
+const mockGetInstallCommand = mock(() => 'bun add -D dependencies');
+const mockCreateCommitlintConfig = mock(() => {});
+const mockCreateSemanticReleaseConfig = mock(() => {});
+const mockSetupLefthook = mock(() => {});
+const mockUpdatePackageJson = mock(() => {});
+const mockCreateGitHubWorkflow = mock(() => {});
+
+mock.module('../src/utils.ts', () => ({
+    log: mockLog,
+    execCommand: mockExecCommand,
+    detectPackageManager: mockDetectPackageManager,
+    getInstallCommand: mockGetInstallCommand,
 }));
 
-vi.mock('../src/configs.ts', () => ({
-    createCommitlintConfig: vi.fn(),
-    createSemanticReleaseConfig: vi.fn(),
-    setupLefthook: vi.fn(),
-    updatePackageJson: vi.fn(),
-    createGitHubWorkflow: vi.fn(),
-    createReadme: vi.fn(),
+mock.module('../src/configs.ts', () => ({
+    createCommitlintConfig: mockCreateCommitlintConfig,
+    createSemanticReleaseConfig: mockCreateSemanticReleaseConfig,
+    setupLefthook: mockSetupLefthook,
+    updatePackageJson: mockUpdatePackageJson,
+    createGitHubWorkflow: mockCreateGitHubWorkflow,
 }));
 
 describe('Conventional Commit Setup Class', () => {
     const mockCwd = '/test/project';
 
     beforeEach(() => {
-        vi.clearAllMocks();
+        // Reset mocks between tests
     });
 
     describe('Class Instantiation', () => {

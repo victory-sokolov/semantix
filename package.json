@@ -27,8 +27,8 @@
         "format": "oxfmt",
         "format:check": "oxfmt --check",
         "typecheck": "tsc --noEmit",
-        "test": "vitest",
-        "test:coverage": "vitest run --coverage",
+        "test": "bun test",
+        "test:coverage": "bun test --coverage",
         "prepublishOnly": "bun run build",
         "commit": "cz",
         "release": "semantic-release",
@@ -45,17 +45,13 @@
         "@semantic-release/git": "^10.0.1",
         "@semantic-release/github": "12.0.2",
         "@types/bun": "latest",
-        "@vitest/coverage-v8": "^4.0.16",
-        "@vitest/ui": "^4.0.16",
         "find-up": "^5.0.0",
-        "jsdom": "^27.4.0",
         "lefthook": "^1.7.0",
         "oxfmt": "0.20.0",
         "oxlint": "1.35.0",
         "rolldown": "1.0.0-beta.57",
         "semantic-release": "^25.0.2",
-        "typescript": "^5.0.0",
-        "vitest": "^4.0.16"
+        "typescript": "^5.0.0"
     },
     "peerDependencies": {
         "bun": ">=1.0.0"

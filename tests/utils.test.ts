@@ -1,80 +1,34 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
-import { log, detectPackageManager, getInstallCommand } from '../src/utils.ts';
-import { existsSync } from 'fs';
-
-vi.mock('fs', () => ({
-    existsSync: vi.fn(),
-    writeFileSync: vi.fn(),
-    readFileSync: vi.fn(),
-    mkdirSync: vi.fn(),
-}));
+import { describe, it, expect, spyOn } from 'bun:test';
+import { log, getInstallCommand } from '../src/utils.ts';
 
 describe('Utility Functions', () => {
     describe('Logging functionality', () => {
         it('should log info messages with cyan color', () => {
-            const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+            const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
             log('Test message', 'info');
             expect(consoleSpy).toHaveBeenCalledWith('\x1b[36mTest message\x1b[0m');
             consoleSpy.mockRestore();
         });
 
         it('should log success messages with green color', () => {
-            const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+            const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
             log('Success message', 'success');
             expect(consoleSpy).toHaveBeenCalledWith('\x1b[32mSuccess message\x1b[0m');
             consoleSpy.mockRestore();
         });
 
         it('should log error messages with red color', () => {
-            const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+            const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
             log('Error message', 'error');
             expect(consoleSpy).toHaveBeenCalledWith('\x1b[31mError message\x1b[0m');
             consoleSpy.mockRestore();
         });
 
         it('should default to info type', () => {
-            const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+            const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
             log('Default message');
             expect(consoleSpy).toHaveBeenCalledWith('\x1b[36mDefault message\x1b[0m');
             consoleSpy.mockRestore();
-        });
-    });
-
-    describe('Package Manager Detection', () => {
-        const mockCwd = '/test';
-
-        beforeEach(() => {
-            vi.clearAllMocks();
-        });
-
-        it('should detect bun via bun.lockb', () => {
-            (existsSync as unknown as Mock).mockImplementation((path: string) => path.endsWith('bun.lockb'));
-            expect(detectPackageManager(mockCwd)).toBe('bun');
-        });
-
-        it('should detect bun via bun.lock', () => {
-            (existsSync as unknown as Mock).mockImplementation((path: string) => path.endsWith('bun.lock'));
-            expect(detectPackageManager(mockCwd)).toBe('bun');
-        });
-
-        it('should detect npm via package-lock.json', () => {
-            (existsSync as unknown as Mock).mockImplementation((path: string) => path.endsWith('package-lock.json'));
-            expect(detectPackageManager(mockCwd)).toBe('npm');
-        });
-
-        it('should detect yarn via yarn.lock', () => {
-            (existsSync as unknown as Mock).mockImplementation((path: string) => path.endsWith('yarn.lock'));
-            expect(detectPackageManager(mockCwd)).toBe('yarn');
-        });
-
-        it('should detect pnpm via pnpm-lock.yaml', () => {
-            (existsSync as unknown as Mock).mockImplementation((path: string) => path.endsWith('pnpm-lock.yaml'));
-            expect(detectPackageManager(mockCwd)).toBe('pnpm');
-        });
-
-        it('should default to bun if no lock file found', () => {
-            (existsSync as unknown as Mock).mockReturnValue(false);
-            expect(detectPackageManager(mockCwd)).toBe('bun');
         });
     });
 

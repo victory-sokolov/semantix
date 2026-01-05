@@ -1,22 +1,22 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { join } from 'path';
 
 // Mock the utils module
-vi.mock('../src/utils.ts', () => ({
-    log: vi.fn(),
-    writeJsonFile: vi.fn(),
-    writeTextFile: vi.fn(),
-    ensureDirectoryExists: vi.fn(),
-    execCommand: vi.fn(),
-    readJsonFile: vi.fn(() => ({ name: 'test-package', version: '1.0.0', scripts: {} })),
+mock.module('../src/utils.ts', () => ({
+    log: mock(() => {}),
+    writeJsonFile: mock(() => {}),
+    writeTextFile: mock(() => {}),
+    ensureDirectoryExists: mock(() => {}),
+    execCommand: mock(() => {}),
+    readJsonFile: mock(() => ({ name: 'test-package', version: '1.0.0', scripts: {} })),
 }));
 
 // Mock the fs module
-vi.mock('fs', () => ({
-    existsSync: vi.fn(() => false),
-    writeFileSync: vi.fn(),
-    readFileSync: vi.fn(() => JSON.stringify({ name: 'test-package', version: '1.0.0', scripts: {} })),
-    mkdirSync: vi.fn(),
+mock.module('fs', () => ({
+    existsSync: mock(() => false),
+    writeFileSync: mock(() => {}),
+    readFileSync: mock(() => JSON.stringify({ name: 'test-package', version: '1.0.0', scripts: {} })),
+    mkdirSync: mock(() => {}),
 }));
 
 import {
@@ -31,9 +31,7 @@ import { writeTextFile, ensureDirectoryExists, execCommand, readJsonFile, writeJ
 describe('Configuration File Generators', () => {
     const mockCwd = '/test/project';
 
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
+    beforeEach(() => {});
 
     describe('Commitlint Configuration Creation', () => {
         it('should create commitlint.config.js with correct content', () => {
