@@ -1,68 +1,64 @@
 {
-  "name": "semantix",
-  "version": "0.0.1",
-  "description": "CLI tool to setup conventional commits, semantic-release, and automated releases",
-  "keywords": [
-    "cli",
-    "commitlint",
-    "conventional-commits",
-    "semantic-release",
-    "typescript"
-  ],
-  "license": "MIT",
-  "author": "Viktor Sokolov",
-  "bin": {
-    "setup-commits": "./dist/index.js"
-  },
-  "files": [
-    "dist"
-  ],
-  "type": "module",
-  "scripts": {
-    "build": "rolldown src/index.ts -o dist/index.js -f esm -p node --clean-dir",
-    "start": "bun run ./src/index.ts",
-    "dev": "bun --watch ./src/index.ts",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "format": "oxfmt",
-    "format:check": "oxfmt --check",
-    "type-check": "tsc --noEmit",
-    "test": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "prepublishOnly": "bun run build",
-    "commit": "cz",
-    "release": "semantic-release",
-    "release:dry": "semantic-release --dry-run",
-    "prepare": "bunx lefthook install"
-  },
-  "dependencies": {
-    "@types/node": "25.0.3"
-  },
-  "devDependencies": {
-    "@commitlint/cli": "^20.2.0",
-    "@commitlint/config-conventional": "^20.0.0",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "12.0.2",
-    "@types/bun": "latest",
-    "@vitest/coverage-v8": "^4.0.16",
-    "@vitest/ui": "^4.0.16",
-    "find-up": "^5.0.0",
-    "jsdom": "^27.4.0",
-    "lefthook": "^1.7.0",
-    "oxfmt": "0.20.0",
-    "oxlint": "1.35.0",
-    "rolldown": "1.0.0-beta.57",
-    "semantic-release": "^25.0.2",
-    "typescript": "^5.0.0",
-    "vitest": "^4.0.16"
-  },
-  "peerDependencies": {
-    "bun": ">=1.0.0"
-  },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
+    "name": "semantix",
+    "version": "0.0.1",
+    "description": "CLI tool to setup conventional commits, semantic-release, and automated releases",
+    "keywords": [
+        "cli",
+        "commitlint",
+        "conventional-commits",
+        "semantic-release",
+        "typescript"
+    ],
+    "license": "MIT",
+    "author": "Viktor Sokolov",
+    "bin": {
+        "setup-commits": "./dist/index.js"
+    },
+    "files": [
+        "dist"
+    ],
+    "type": "module",
+    "scripts": {
+        "build": "rolldown src/index.ts -o dist/index.js -f esm -p node --clean-dir",
+        "start": "bun run ./src/index.ts",
+        "dev": "bun --watch ./src/index.ts",
+        "lint": "oxlint",
+        "lint:fix": "oxlint --fix",
+        "format": "oxfmt",
+        "format:check": "oxfmt --check",
+        "typecheck": "tsc --noEmit",
+        "test": "bun test",
+        "test:coverage": "bun test --coverage",
+        "prepublishOnly": "bun run build",
+        "commit": "cz",
+        "jscpd": "jscpd src/ tests",
+        "release": "semantic-release",
+        "release:dry": "semantic-release --dry-run",
+        "prepare": "bunx lefthook install"
+    },
+    "devDependencies": {
+        "@commitlint/cli": "^20.2.0",
+        "@commitlint/config-conventional": "^20.0.0",
+        "@semantic-release/changelog": "^6.0.3",
+        "@semantic-release/git": "^10.0.1",
+        "@semantic-release/github": "12.0.2",
+        "@types/bun": "1.3.5",
+        "@types/node": "25.0.3",
+        "find-up": "^5.0.0",
+        "jscpd": "4.0.5",
+        "lefthook": "^1.7.0",
+        "oxfmt": "0.22.0",
+        "oxlint": "1.37.0",
+        "rolldown": "1.0.0-beta.58",
+        "semantic-release": "^25.0.2",
+        "typescript": "^5.0.0"
+    },
+    "peerDependencies": {
+        "bun": ">=1.0.0"
+    },
+    "config": {
+        "commitizen": {
+            "path": "cz-conventional-changelog"
+        }
     }
-  }
 }

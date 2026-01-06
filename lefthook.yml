@@ -1,14 +1,14 @@
 pre-commit:
-  parallel: true
-  commands:
-    format:
-      run: bun run format
-    lint:
-      run: bun run lint
-    type-check:
-      run: bun run type-check
+    parallel: true
+    commands:
+        format-check:
+            run: bun run format:check
+        lint:
+            run: bun run lint
+        typecheck:
+            run: bun run typecheck
 
 commit-msg:
-  commands:
-    commitlint:
-      run: npx --no -- commitlint --edit {1}
+    commands:
+        commitlint:
+            run: bunx --no -- commitlint --edit {1}

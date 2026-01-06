@@ -1,111 +1,222 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import { log, detectPackageManager, getInstallCommand } from "../src/utils.ts";
-import { existsSync } from "fs";
+import { describe, it, expect, spyOn, beforeEach, afterEach } from 'bun:test';
+import { join } from 'path';
+import { existsSync, readFileSync, mkdirSync } from 'fs';
+import {
+    log,
+    getInstallCommand,
+    ensureDirectoryExists,
+    writeJsonFile,
+    writeTextFile,
+    readJsonFile,
+} from '../src/utils.ts';
+import { createTempDir, cleanupTempDir } from './test-helpers.ts';
 
-vi.mock("fs", () => ({
-  existsSync: vi.fn(),
-  writeFileSync: vi.fn(),
-  readFileSync: vi.fn(),
-  mkdirSync: vi.fn(),
-}));
-
-describe("Utility Functions", () => {
-  describe("Logging functionality", () => {
-    it("should log info messages with cyan color", () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      log("Test message", "info");
-      expect(consoleSpy).toHaveBeenCalledWith("\x1b[36mTest message\x1b[0m");
-      consoleSpy.mockRestore();
-    });
-
-    it("should log success messages with green color", () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      log("Success message", "success");
-      expect(consoleSpy).toHaveBeenCalledWith("\x1b[32mSuccess message\x1b[0m");
-      consoleSpy.mockRestore();
-    });
-
-    it("should log error messages with red color", () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      log("Error message", "error");
-      expect(consoleSpy).toHaveBeenCalledWith("\x1b[31mError message\x1b[0m");
-      consoleSpy.mockRestore();
-    });
-
-    it("should default to info type", () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      log("Default message");
-      expect(consoleSpy).toHaveBeenCalledWith("\x1b[36mDefault message\x1b[0m");
-      consoleSpy.mockRestore();
-    });
-  });
-
-  describe("Package Manager Detection", () => {
-    const mockCwd = "/test";
+describe('Utility Functions', () => {
+    let tempDir: string;
+    let consoleSpy: ReturnType<typeof spyOn>;
 
     beforeEach(() => {
-      vi.clearAllMocks();
+        tempDir = createTempDir('temp-test-utils');
+        consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
     });
 
-    it("should detect bun via bun.lockb", () => {
-      (existsSync as unknown as Mock).mockImplementation((path: string) =>
-        path.endsWith("bun.lockb"),
-      );
-      expect(detectPackageManager(mockCwd)).toBe("bun");
+    afterEach(() => {
+        cleanupTempDir(tempDir);
+        consoleSpy.mockRestore();
     });
 
-    it("should detect bun via bun.lock", () => {
-      (existsSync as unknown as Mock).mockImplementation((path: string) =>
-        path.endsWith("bun.lock"),
-      );
-      expect(detectPackageManager(mockCwd)).toBe("bun");
+    describe('Logging functionality', () => {
+        it('should log info messages with cyan color', () => {
+            log('Test message', 'info');
+
+            expect(consoleSpy).toHaveBeenCalledWith('\x1b[36mTest message\x1b[0m');
+        });
+
+        it('should log success messages with green color', () => {
+            log('Success message', 'success');
+
+            expect(consoleSpy).toHaveBeenCalledWith('\x1b[32mSuccess message\x1b[0m');
+        });
+
+        it('should log error messages with red color', () => {
+            log('Error message', 'error');
+
+            expect(consoleSpy).toHaveBeenCalledWith('\x1b[31mError message\x1b[0m');
+        });
+
+        it('should log warning messages with yellow color', () => {
+            log('Warning message', 'warning');
+
+            expect(consoleSpy).toHaveBeenCalledWith('\x1b[33mWarning message\x1b[0m');
+        });
+
+        it('should default to info type', () => {
+            log('Default message');
+
+            expect(consoleSpy).toHaveBeenCalledWith('\x1b[36mDefault message\x1b[0m');
+        });
     });
 
-    it("should detect npm via package-lock.json", () => {
-      (existsSync as unknown as Mock).mockImplementation((path: string) =>
-        path.endsWith("package-lock.json"),
-      );
-      expect(detectPackageManager(mockCwd)).toBe("npm");
+    describe('Install Command Generation', () => {
+        const deps = ['dep1', 'dep2'];
+        const depsString = 'dep1 dep2';
+
+        it('should generate npm install command', () => {
+            expect(getInstallCommand('npm', deps)).toBe(`npm install -D ${depsString}`);
+        });
+
+        it('should generate yarn add command', () => {
+            expect(getInstallCommand('yarn', deps)).toBe(`yarn add -D ${depsString}`);
+        });
+
+        it('should generate pnpm add command', () => {
+            expect(getInstallCommand('pnpm', deps)).toBe(`pnpm add -D ${depsString}`);
+        });
+
+        it('should generate bun add command', () => {
+            expect(getInstallCommand('bun', deps)).toBe(`bun add -D ${depsString}`);
+        });
+
+        it('should handle empty dependencies array', () => {
+            expect(getInstallCommand('npm', [])).toBe('npm install -D ');
+        });
+
+        it('should handle single dependency', () => {
+            expect(getInstallCommand('bun', ['single-dep'])).toBe('bun add -D single-dep');
+        });
     });
 
-    it("should detect yarn via yarn.lock", () => {
-      (existsSync as unknown as Mock).mockImplementation((path: string) =>
-        path.endsWith("yarn.lock"),
-      );
-      expect(detectPackageManager(mockCwd)).toBe("yarn");
+    describe('Directory Operations', () => {
+        describe('ensureDirectoryExists', () => {
+            it('should create directory if it does not exist', () => {
+                const testDir = join(tempDir, 'new-directory');
+                expect(existsSync(testDir)).toBe(false);
+
+                ensureDirectoryExists(testDir);
+
+                expect(existsSync(testDir)).toBe(true);
+            });
+
+            it('should create nested directories', () => {
+                const testDir = join(tempDir, 'a', 'b', 'c');
+                expect(existsSync(testDir)).toBe(false);
+
+                ensureDirectoryExists(testDir);
+
+                expect(existsSync(testDir)).toBe(true);
+            });
+
+            it('should not error if directory already exists', () => {
+                const testDir = join(tempDir, 'existing-dir');
+                mkdirSync(testDir);
+
+                expect(() => ensureDirectoryExists(testDir)).not.toThrow();
+                expect(existsSync(testDir)).toBe(true);
+            });
+        });
     });
 
-    it("should detect pnpm via pnpm-lock.yaml", () => {
-      (existsSync as unknown as Mock).mockImplementation((path: string) =>
-        path.endsWith("pnpm-lock.yaml"),
-      );
-      expect(detectPackageManager(mockCwd)).toBe("pnpm");
-    });
+    describe('File Operations', () => {
+        describe('writeJsonFile', () => {
+            it('should write JSON file with correct formatting', () => {
+                const testFile = join(tempDir, 'test.json');
+                const testData = { name: 'test', value: 123 };
 
-    it("should default to bun if no lock file found", () => {
-      (existsSync as unknown as Mock).mockReturnValue(false);
-      expect(detectPackageManager(mockCwd)).toBe("bun");
-    });
-  });
+                writeJsonFile(testFile, testData);
 
-  describe("Install Command Generation", () => {
-    const deps = ["dep1", "dep2"];
-    const depsString = "dep1 dep2";
+                expect(existsSync(testFile)).toBe(true);
+                const content = readFileSync(testFile, 'utf-8');
+                const parsed = JSON.parse(content);
+                expect(parsed).toEqual(testData);
+            });
 
-    it("should generate npm install command", () => {
-      expect(getInstallCommand("npm", deps)).toBe(`npm install -D ${depsString}`);
-    });
+            it('should write JSON with 4-space indentation', () => {
+                const testFile = join(tempDir, 'indented.json');
+                const testData = { key: 'value' };
 
-    it("should generate yarn add command", () => {
-      expect(getInstallCommand("yarn", deps)).toBe(`yarn add -D ${depsString}`);
-    });
+                writeJsonFile(testFile, testData);
 
-    it("should generate pnpm add command", () => {
-      expect(getInstallCommand("pnpm", deps)).toBe(`pnpm add -D ${depsString}`);
-    });
+                const content = readFileSync(testFile, 'utf-8');
+                expect(content).toContain('    "key"');
+            });
 
-    it("should generate bun add command", () => {
-      expect(getInstallCommand("bun", deps)).toBe(`bun add -D ${depsString}`);
+            it('should handle nested objects', () => {
+                const testFile = join(tempDir, 'nested.json');
+                const testData = { outer: { inner: 'value' } };
+
+                writeJsonFile(testFile, testData);
+
+                const parsed = JSON.parse(readFileSync(testFile, 'utf-8'));
+                expect(parsed).toEqual(testData);
+            });
+        });
+
+        describe('writeTextFile', () => {
+            it('should write text file with exact content', () => {
+                const testFile = join(tempDir, 'test.txt');
+                const content = 'Hello, World!';
+
+                writeTextFile(testFile, content);
+
+                expect(existsSync(testFile)).toBe(true);
+                const fileContent = readFileSync(testFile, 'utf-8');
+                expect(fileContent).toBe(content);
+            });
+
+            it('should handle multi-line content', () => {
+                const testFile = join(tempDir, 'multiline.txt');
+                const content = 'Line 1\nLine 2\nLine 3';
+
+                writeTextFile(testFile, content);
+
+                const fileContent = readFileSync(testFile, 'utf-8');
+                expect(fileContent).toBe(content);
+            });
+
+            it('should overwrite existing file', () => {
+                const testFile = join(tempDir, 'overwrite.txt');
+                writeTextFile(testFile, 'original');
+
+                writeTextFile(testFile, 'new content');
+
+                const fileContent = readFileSync(testFile, 'utf-8');
+                expect(fileContent).toBe('new content');
+            });
+        });
+
+        describe('readJsonFile', () => {
+            it('should read and parse JSON file', () => {
+                const testFile = join(tempDir, 'read.json');
+                const testData = { key: 'value', number: 42 };
+                writeTextFile(testFile, JSON.stringify(testData));
+
+                const result = readJsonFile(testFile);
+
+                expect(result).toEqual(testData);
+            });
+
+            it('should throw error for invalid JSON', () => {
+                const testFile = join(tempDir, 'invalid.json');
+                writeTextFile(testFile, '{ invalid json }');
+
+                expect(() => readJsonFile(testFile)).toThrow();
+            });
+
+            it('should throw error for non-existent file', () => {
+                const testFile = join(tempDir, 'nonexistent.json');
+
+                expect(() => readJsonFile(testFile)).toThrow();
+            });
+
+            it('should parse arrays', () => {
+                const testFile = join(tempDir, 'array.json');
+                const testData = [1, 2, 3, 4, 5];
+                writeTextFile(testFile, JSON.stringify(testData));
+
+                const result = readJsonFile(testFile);
+
+                expect(result).toEqual(testData);
+            });
+        });
     });
-  });
 });

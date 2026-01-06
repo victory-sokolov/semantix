@@ -107,11 +107,11 @@ your-project/
 
 ```json
 {
-  "scripts": {
-    "release": "semantic-release",
-    "release:dry": "semantic-release --dry-run",
-    "prepare": "lefthook install"
-  }
+    "scripts": {
+        "release": "semantic-release",
+        "release:dry": "semantic-release --dry-run",
+        "prepare": "lefthook install"
+    }
 }
 ```
 
@@ -156,11 +156,11 @@ BREAKING CHANGE: The authentication API has been completely redesigned"
 2. **Push** to `main` or `master` branch
 3. **GitHub Actions** runs automatically
 4. **Semantic-release** analyzes commits and:
-   - Determines version bump (major/minor/patch)
-   - Generates CHANGELOG.md
-   - Creates git tag
-   - Publishes GitHub release
-   - Updates package.json version
+    - Determines version bump (major/minor/patch)
+    - Generates CHANGELOG.md
+    - Creates git tag
+    - Publishes GitHub release
+    - Updates package.json version
 
 ### Version Bumping
 
@@ -203,8 +203,8 @@ Edit `.releaserc.mjs`:
 
 ```javascript
 const config = {
-  branches: ["main", "develop", {"name": "beta", "prerelease": true}],
-  // ... rest of config
+    branches: ['main', 'develop', { name: 'beta', prerelease: true }],
+    // ... rest of config
 };
 
 export default config;
@@ -216,14 +216,10 @@ Edit `commitlint.config.js`:
 
 ```javascript
 module.exports = {
-  extends: ["@commitlint/config-conventional"],
-  rules: {
-    "type-enum": [
-      2,
-      "always",
-      ["feat", "fix", "docs", "custom-type"]
-    ]
-  }
+    extends: ['@commitlint/config-conventional'],
+    rules: {
+        'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'custom-type']],
+    },
 };
 ```
 
@@ -265,7 +261,7 @@ bun run test
 bun run test:coverage
 
 # Type checking
-bun run type-check
+bun run typecheck
 
 # Linting
 bun run lint
