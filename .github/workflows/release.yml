@@ -51,14 +51,10 @@ jobs:
       - name: Build
         run: bun run build
 
-      - name: Verify NPM authentication
-        run: |
-          echo "Configuring NPM with token..."
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-          echo "Verifying NPM token authentication..."
-          npm whoami
-          echo "NPM authentication successful"
+      - name: Release (dry-run)
+        run: bunx semantic-release --dry-run
         env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Release
