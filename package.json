@@ -24,7 +24,7 @@
         "dev": "bun --watch ./src/index.ts",
         "lint": "oxlint",
         "lint:fix": "oxlint --fix",
-        "format": "oxfmt",
+        "format": "oxfmt src tests --write",
         "format:check": "oxfmt --check src tests",
         "typecheck": "tsc --noEmit",
         "test": "bun test",
@@ -32,29 +32,30 @@
         "prepublishOnly": "bun run build",
         "commit": "cz",
         "jscpd": "jscpd src/ tests",
+        "up-latest": "bun update --latest",
         "release": "semantic-release",
         "release:dry": "semantic-release --dry-run",
         "prepare": "bunx lefthook install"
     },
     "devDependencies": {
-        "@commitlint/cli": "^20.2.0",
-        "@commitlint/config-conventional": "^20.0.0",
+        "@commitlint/cli": "^20.4.0",
+        "@commitlint/config-conventional": "^20.4.0",
         "@semantic-release/changelog": "^6.0.3",
         "@semantic-release/git": "^10.0.1",
-        "@semantic-release/github": "12.0.2",
-        "@types/bun": "1.3.5",
-        "@types/node": "25.0.3",
-        "find-up": "^5.0.0",
-        "jscpd": "4.0.5",
-        "lefthook": "^1.7.0",
-        "oxfmt": "0.22.0",
-        "oxlint": "1.37.0",
-        "rolldown": "1.0.0-beta.58",
-        "semantic-release": "^25.0.2",
-        "typescript": "^5.0.0"
+        "@semantic-release/github": "12.0.3",
+        "@types/bun": "1.3.8",
+        "@types/node": "25.2.0",
+        "find-up": "^8.0.0",
+        "jscpd": "4.0.8",
+        "lefthook": "^2.0.16",
+        "oxfmt": "0.27.0",
+        "oxlint": "1.42.0",
+        "rolldown": "1.0.0-rc.2",
+        "semantic-release": "^25.0.3",
+        "typescript": "^5.9.3"
     },
     "peerDependencies": {
-        "bun": ">=1.0.0"
+        "bun": "^1.3.8"
     },
     "config": {
         "commitizen": {
