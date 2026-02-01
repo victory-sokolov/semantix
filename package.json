@@ -9,6 +9,9 @@
         "semantic-release",
         "typescript"
     ],
+    "publishConfig": {
+        "access": "public"
+    },
     "license": "MIT",
     "author": "Viktor Sokolov",
     "bin": {
