@@ -1,6 +1,6 @@
 {
     "name": "semantix",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "description": "CLI tool to setup conventional commits, semantic-release, and automated releases",
     "keywords": [
         "cli",
