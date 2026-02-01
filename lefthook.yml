@@ -1,5 +1,7 @@
 pre-commit:
     parallel: true
+    skip:
+        - run: test -z "$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^(src|tests)/')"
     commands:
         format-check:
             run: bun run format:check
