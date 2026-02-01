@@ -7,6 +7,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  id-token: write
 
 jobs:
   ci:
@@ -15,13 +16,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install
+      - name: Setup Bun with cache
+        uses: ./.github/actions/setup-bun-cache
 
       - name: Type check
         run: bun run typecheck
@@ -44,18 +40,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
+      - name: Setup Bun with cache
+        uses: ./.github/actions/setup-bun-cache
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '22'
-
-      - name: Install dependencies
-        run: bun install
 
       - name: Build
         run: bun run build
