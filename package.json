@@ -25,7 +25,7 @@
         "lint": "oxlint",
         "lint:fix": "oxlint --fix",
         "format": "oxfmt",
-        "format:check": "oxfmt --check",
+        "format:check": "oxfmt --check src tests",
         "typecheck": "tsc --noEmit",
         "test": "bun test",
         "test:coverage": "bun test --coverage",
