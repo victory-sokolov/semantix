@@ -53,8 +53,10 @@ jobs:
 
       - name: Verify NPM authentication
         run: |
+          echo "Configuring NPM with token..."
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
           echo "Verifying NPM token authentication..."
-          npm whoami --registry https://registry.npmjs.org/
+          npm whoami
           echo "NPM authentication successful"
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
