@@ -1,6 +1,6 @@
 # Semantix
 
-A TypeScript CLI tool built with Bun to automatically configure conventional commits, semantic-release, and automated releases for your projects.
+A TypeScript CLI tool to automatically configure conventional commits, semantic-release, and automated releases for your projects.
 
 ## Quick Start
 
@@ -187,13 +187,6 @@ The GitHub Actions workflow needs a `GITHUB_TOKEN` to create releases. This is a
 1. **Settings** → **Actions** → **General**
 2. **Workflow permissions** → Select "Read and write permissions"
 3. Check "Allow GitHub Actions to create and approve pull requests"
-
-### Optional: NPM Publishing
-
-To publish to npm, add `NPM_TOKEN` to repository secrets:
-
-1. Go to **Settings** → **Secrets and variables** → **Actions**
-2. Add `NPM_TOKEN` with your npm access token
 
 ## Customization
 

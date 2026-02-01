@@ -1,5 +1,5 @@
 const config = {
-    branches: ['main', 'next'],
+    branches: ['main'],
     plugins: [
         '@semantic-release/commit-analyzer',
         [
@@ -7,7 +7,12 @@ const config = {
             {
                 preset: 'angular',
                 releaseRules: [
-                    { type: 'docs', scope: 'README', release: 'patch', emoji: '📝' },
+                    {
+                        type: 'docs',
+                        scope: 'README',
+                        release: 'patch',
+                        emoji: '📝',
+                    },
                     { type: 'refactor', release: 'patch', emoji: '♻️' },
                     { type: 'style', release: 'patch', emoji: '🎨' },
                     { type: 'feat', release: 'minor', emoji: '✨' },

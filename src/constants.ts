@@ -97,6 +97,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  id-token: write
 
 jobs:
   release:
@@ -113,7 +114,7 @@ ${setupStep}
 
       - name: Release
         env:
-          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: \${{ secrets.GH_TOKEN }}
         run: ${runCmd}
   `;
 };
