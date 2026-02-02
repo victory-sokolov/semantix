@@ -3,7 +3,7 @@
 ## 1. Install Semantix
 
 ```bash
-bun install -g semantix
+bun install -g @vsokolov/semantix
 ```
 
 ## 2. Run in Your Project

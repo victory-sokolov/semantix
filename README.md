@@ -6,7 +6,7 @@ A TypeScript CLI tool to automatically configure conventional commits, semantic-
 
 ```bash
 # Install globally
-bun install -g semantix
+bun install -g @vsokolov/semantix
 
 # Run in your project
 cd your-project
@@ -36,20 +36,20 @@ See [QUICKSTART.md](./QUICKSTART.md) for a detailed getting started guide.
 bun install -g semantix
 
 # Using npm
-npm install -g semantix
+npm install -g @vsokolov/semantix
 
 # Using pnpm
-pnpm add -g semantix
+pnpm add -g @vsokolov/semantix
 ```
 
 ### Local Installation
 
 ```bash
 # Using Bun
-bun add -D semantix
+bun add -D @vsokolov/semantix
 
 # Using npm
-npm install --save-dev semantix
+npm install --save-dev @vsokolov/semantix
 ```
 
 ## Usage
@@ -61,9 +61,9 @@ Navigate to your project directory and run:
 semantix
 
 # If installed locally
-bunx semantix
+bunx @vsokolov/semantix
 # or
-npx semantix
+npx @vsokolov/semantix
 ```
 
 That's it! Semantix will automatically configure everything for you.

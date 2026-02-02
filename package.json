@@ -1,5 +1,5 @@
 {
-    "name": "semantix",
+    "name": "@vsokolov/semantix",
     "version": "1.0.0",
     "description": "CLI tool to setup conventional commits, semantic-release, and automated releases",
     "keywords": [
