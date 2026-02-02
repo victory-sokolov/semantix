@@ -53,6 +53,7 @@ export function mockConfigsAndUtils(): {
     setupLefthook: ReturnType<typeof spyOn>;
     updatePackageJson: ReturnType<typeof spyOn>;
     createGitHubWorkflow: ReturnType<typeof spyOn>;
+    promptConfirmation: ReturnType<typeof spyOn>;
 } {
     return {
         execCommand: spyOn(utils, 'execCommand').mockImplementation(() => {}),
@@ -61,5 +62,6 @@ export function mockConfigsAndUtils(): {
         setupLefthook: spyOn(configs, 'setupLefthook').mockImplementation(() => {}),
         updatePackageJson: spyOn(configs, 'updatePackageJson').mockImplementation(() => {}),
         createGitHubWorkflow: spyOn(configs, 'createGitHubWorkflow').mockImplementation(() => {}),
+        promptConfirmation: spyOn(utils, 'promptConfirmation').mockImplementation(() => Promise.resolve(true)),
     };
 }

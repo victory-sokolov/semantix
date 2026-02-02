@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 import { existsSync, writeFileSync, readFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { createInterface } from 'readline';
 import { PM_LOCK_FILES, type PackageManager } from './constants';
 
 export function log(message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info') {
@@ -77,4 +78,19 @@ export function getInstallCommand(pm: PackageManager, dependencies: string[]): s
         case 'bun':
             return `bun add -D ${deps}`;
     }
+}
+
+export function promptConfirmation(question: string): Promise<boolean> {
+    const rl = createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+
+    return new Promise((resolve) => {
+        rl.question(`${question} (Y/n): `, (answer) => {
+            rl.close();
+            const normalized = answer.trim().toLowerCase();
+            resolve(normalized === '' || normalized === 'y' || normalized === 'yes');
+        });
+    });
 }

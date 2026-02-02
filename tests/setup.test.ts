@@ -37,13 +37,13 @@ describe('Conventional Commit Setup Class', () => {
 
     describe('Class Instantiation', () => {
         it('should create an instance with provided cwd', () => {
-            const setup = new ConventionalCommitSetup(tempDir);
+            const setup = new ConventionalCommitSetup(tempDir, true);
             expect(setup).toBeInstanceOf(ConventionalCommitSetup);
             expect((setup as unknown as { cwd: string }).cwd).toBe(tempDir);
         });
 
         it('should default to process.cwd() when no path provided', () => {
-            const setup = new ConventionalCommitSetup();
+            const setup = new ConventionalCommitSetup(undefined, true);
             expect((setup as unknown as { cwd: string }).cwd).toBe(process.cwd());
         });
     });
@@ -52,40 +52,40 @@ describe('Conventional Commit Setup Class', () => {
         it('should detect bun package manager from bun.lock file', () => {
             createMockLockFile(tempDir, 'bun');
 
-            const setup = new ConventionalCommitSetup(tempDir);
+            const setup = new ConventionalCommitSetup(tempDir, true);
             expect((setup as unknown as { packageManager: string }).packageManager).toBe('bun');
         });
 
         it('should detect npm package manager from package-lock.json file', () => {
             createMockLockFile(tempDir, 'npm');
 
-            const setup = new ConventionalCommitSetup(tempDir);
+            const setup = new ConventionalCommitSetup(tempDir, true);
             expect((setup as unknown as { packageManager: string }).packageManager).toBe('npm');
         });
 
         it('should detect yarn package manager from yarn.lock file', () => {
             createMockLockFile(tempDir, 'yarn');
 
-            const setup = new ConventionalCommitSetup(tempDir);
+            const setup = new ConventionalCommitSetup(tempDir, true);
             expect((setup as unknown as { packageManager: string }).packageManager).toBe('yarn');
         });
 
         it('should default to bun when no lock file is found', () => {
-            const setup = new ConventionalCommitSetup(tempDir);
+            const setup = new ConventionalCommitSetup(tempDir, true);
             expect((setup as unknown as { packageManager: string }).packageManager).toBe('bun');
         });
     });
 
     describe('Setup Method', () => {
         it('should be a function', () => {
-            const setup = new ConventionalCommitSetup();
+            const setup = new ConventionalCommitSetup(undefined, true);
             expect(typeof setup.setup).toBe('function');
         });
 
         it('should return a promise', () => {
             mocks = mockConfigsAndUtils();
 
-            const setup = new ConventionalCommitSetup();
+            const setup = new ConventionalCommitSetup(undefined, true);
             const result = setup.setup();
             expect(result).toBeInstanceOf(Promise);
         });
@@ -96,7 +96,7 @@ describe('Conventional Commit Setup Class', () => {
             createTestPackageFile(tempDir);
             createBunLockFile(tempDir);
 
-            const setup = new ConventionalCommitSetup(tempDir);
+            const setup = new ConventionalCommitSetup(tempDir, true);
             await setup.setup();
 
             expect(mocks.execCommand).toHaveBeenCalled();
@@ -116,7 +116,7 @@ describe('Conventional Commit Setup Class', () => {
             createTestPackageFile(tempDir);
             createBunLockFile(tempDir);
 
-            const setup = new ConventionalCommitSetup(tempDir);
+            const setup = new ConventionalCommitSetup(tempDir, true);
 
             await expect(setup.setup()).rejects.toThrow();
 
@@ -132,7 +132,7 @@ describe('Conventional Commit Setup Class', () => {
             createTestPackageFile(tempDir);
             createBunLockFile(tempDir);
 
-            const setup = new ConventionalCommitSetup(tempDir);
+            const setup = new ConventionalCommitSetup(tempDir, true);
             setup.setup();
 
             expect(mocks.execCommand).toHaveBeenCalled();
