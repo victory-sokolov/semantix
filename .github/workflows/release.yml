@@ -50,12 +50,6 @@ jobs:
 
       - name: Build
         run: bun run build
-
-      # - name: Verify npm authentication
-      #   run: npm whoami && npm access list packages
-      #   env:
-      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Release (dry-run)
         run: bunx semantic-release --dry-run
         env:
@@ -66,5 +60,5 @@ jobs:
         id: semantic-release
         run: bunx semantic-release
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

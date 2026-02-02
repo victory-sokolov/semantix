@@ -114,7 +114,7 @@ ${setupStep}
 
       - name: Release
         env:
-          GH_TOKEN: \${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: \${{ secrets.GH_TOKEN }}
         run: ${runCmd}
   `;
 };
