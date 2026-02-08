@@ -126,14 +126,14 @@ describe('Conventional Commit Setup Class', () => {
     });
 
     describe('installDependencies', () => {
-        it('should call execCommand with correct install command', () => {
+        it('should call execCommand with correct install command', async () => {
             mocks = mockConfigsAndUtils();
 
             createTestPackageFile(tempDir);
             createBunLockFile(tempDir);
 
             const setup = new ConventionalCommitSetup(tempDir, true);
-            setup.setup();
+            await setup.setup();
 
             expect(mocks.execCommand).toHaveBeenCalled();
             const installCommand = mocks.execCommand.mock.calls[0][0];

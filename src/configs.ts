@@ -5,8 +5,17 @@ import {
     getGithubWorkflow,
     getLefthookConfig,
     type PackageManager,
+    PACKAGE_MANAGER_DISPLAY_NAMES,
 } from './constants';
-import { log, writeJsonFile, writeTextFile, ensureDirectoryExists, execCommand, readJsonFile } from './utils';
+import {
+    log,
+    writeJsonFile,
+    writeTextFile,
+    ensureDirectoryExists,
+    execCommand,
+    readJsonFile,
+    promptConfirmation,
+} from './utils';
 
 export function createCommitlintConfig(cwd: string) {
     log('📝 Creating commitlint configuration...', 'info');
@@ -137,4 +146,46 @@ export function createGitHubWorkflow(cwd: string, pm: PackageManager) {
     writeTextFile(join(workflowDir, 'release.yml'), getGithubWorkflow(pm));
 
     log('✓ GitHub Actions workflow created', 'success');
+}
+
+export async function ensurePackageJsonExists(cwd: string, pm: PackageManager): Promise<void> {
+    const packageJsonPath = join(cwd, 'package.json');
+
+    // Check if package.json exists
+    const exists = require('fs').existsSync(packageJsonPath);
+
+    if (exists) {
+        return;
+    }
+
+    log('⚠️  package.json not found in this directory', 'warning');
+
+    const wantToCreate = await promptConfirmation('Would you like to create a package.json?');
+
+    if (!wantToCreate) {
+        log('❌ Cannot proceed without package.json', 'error');
+        process.exit(1);
+    }
+
+    // Create package.json using the package manager's init command
+    log(`\n📦 Initializing package.json with ${PACKAGE_MANAGER_DISPLAY_NAMES[pm]}...`, 'info');
+
+    try {
+        let initCmd = `${pm} init`;
+        if (pm === 'npm') {
+            initCmd = 'npm init -y'; // Use -y for non-interactive
+        } else if (pm === 'pnpm') {
+            initCmd = 'pnpm init';
+        } else if (pm === 'bun') {
+            initCmd = 'bun init -y'; // bun supports -y
+        } else if (pm === 'yarn') {
+            initCmd = 'yarn init -y'; // yarn supports -y
+        }
+
+        execCommand(initCmd, cwd);
+        log('✓ package.json created', 'success');
+    } catch (error) {
+        log(`❌ Failed to create package.json: ${error}`, 'error');
+        process.exit(1);
+    }
 }

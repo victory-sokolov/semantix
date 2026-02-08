@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { join } from 'path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import {
@@ -7,6 +7,7 @@ import {
     setupLefthook,
     updatePackageJson,
     createGitHubWorkflow,
+    ensurePackageJsonExists,
 } from '../src/configs.ts';
 import { COMMITLINT_CONFIG, SEMANTIC_RELEASE_CONFIG } from '../src/constants.ts';
 import { writeTextFile, writeJsonFile } from '../src/utils.ts';
@@ -389,6 +390,144 @@ describe('Configuration File Generators', () => {
             const content = readFileSync(workflowPath, 'utf-8');
             expect(content).toContain('Setup Bun');
             expect(content).not.toBe('old workflow');
+        });
+    });
+
+    describe('ensurePackageJsonExists', () => {
+        let mockProcessExit: ReturnType<typeof spyOn>;
+        let originalExistsSync: typeof existsSync;
+        let execCommandSpy: ReturnType<typeof spyOn>;
+        let promptConfirmationSpy: ReturnType<typeof spyOn>;
+        let consoleLogSpy: ReturnType<typeof spyOn>;
+
+        beforeEach(() => {
+            // Save original existsSync
+            const fs = require('fs');
+            originalExistsSync = fs.existsSync;
+
+            // Mock process.exit to prevent test from actually exiting
+            mockProcessExit = spyOn(process, 'exit').mockImplementation((() => {}) as () => never);
+
+            // Mock console.log to suppress output
+            consoleLogSpy = spyOn(console, 'log').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            mockProcessExit.mockRestore();
+            consoleLogSpy.mockRestore();
+
+            // Restore original existsSync
+            const fs = require('fs');
+            fs.existsSync = originalExistsSync;
+
+            // Restore spies if they were created
+            execCommandSpy?.mockRestore();
+            promptConfirmationSpy?.mockRestore();
+        });
+
+        it('should return early when package.json already exists', async () => {
+            const fs = require('fs');
+            fs.existsSync = (path: string) => path.endsWith('package.json');
+
+            const utils = await import('../src/utils.ts');
+            execCommandSpy = spyOn(utils, 'execCommand').mockImplementation(() => {});
+
+            await ensurePackageJsonExists(tempDir, 'npm');
+
+            // Should not call execCommand since package.json exists
+            expect(execCommandSpy).not.toHaveBeenCalled();
+        });
+
+        it('should prompt user when package.json does not exist', async () => {
+            const fs = require('fs');
+            fs.existsSync = (path: string) => !path.endsWith('package.json');
+
+            const utils = await import('../src/utils.ts');
+            promptConfirmationSpy = spyOn(utils, 'promptConfirmation').mockResolvedValue(true);
+            execCommandSpy = spyOn(utils, 'execCommand').mockImplementation(() => {});
+
+            await ensurePackageJsonExists(tempDir, 'npm');
+
+            expect(promptConfirmationSpy).toHaveBeenCalledWith('Would you like to create a package.json?');
+        });
+
+        it('should run npm init -y when package.json does not exist and user agrees', async () => {
+            const fs = require('fs');
+            fs.existsSync = (path: string) => !path.endsWith('package.json');
+
+            const utils = await import('../src/utils.ts');
+            promptConfirmationSpy = spyOn(utils, 'promptConfirmation').mockResolvedValue(true);
+            execCommandSpy = spyOn(utils, 'execCommand').mockImplementation(() => {});
+
+            await ensurePackageJsonExists(tempDir, 'npm');
+
+            expect(execCommandSpy).toHaveBeenCalledWith('npm init -y', tempDir);
+        });
+
+        it('should run bun init -y when package.json does not exist and user agrees', async () => {
+            const fs = require('fs');
+            fs.existsSync = (path: string) => !path.endsWith('package.json');
+
+            const utils = await import('../src/utils.ts');
+            promptConfirmationSpy = spyOn(utils, 'promptConfirmation').mockResolvedValue(true);
+            execCommandSpy = spyOn(utils, 'execCommand').mockImplementation(() => {});
+
+            await ensurePackageJsonExists(tempDir, 'bun');
+
+            expect(execCommandSpy).toHaveBeenCalledWith('bun init -y', tempDir);
+        });
+
+        it('should run yarn init -y when package.json does not exist and user agrees', async () => {
+            const fs = require('fs');
+            fs.existsSync = (path: string) => !path.endsWith('package.json');
+
+            const utils = await import('../src/utils.ts');
+            promptConfirmationSpy = spyOn(utils, 'promptConfirmation').mockResolvedValue(true);
+            execCommandSpy = spyOn(utils, 'execCommand').mockImplementation(() => {});
+
+            await ensurePackageJsonExists(tempDir, 'yarn');
+
+            expect(execCommandSpy).toHaveBeenCalledWith('yarn init -y', tempDir);
+        });
+
+        it('should run pnpm init when package.json does not exist and user agrees', async () => {
+            const fs = require('fs');
+            fs.existsSync = (path: string) => !path.endsWith('package.json');
+
+            const utils = await import('../src/utils.ts');
+            promptConfirmationSpy = spyOn(utils, 'promptConfirmation').mockResolvedValue(true);
+            execCommandSpy = spyOn(utils, 'execCommand').mockImplementation(() => {});
+
+            await ensurePackageJsonExists(tempDir, 'pnpm');
+
+            expect(execCommandSpy).toHaveBeenCalledWith('pnpm init', tempDir);
+        });
+
+        it('should exit process when user declines to create package.json', async () => {
+            const fs = require('fs');
+            fs.existsSync = (path: string) => !path.endsWith('package.json');
+
+            const utils = await import('../src/utils.ts');
+            promptConfirmationSpy = spyOn(utils, 'promptConfirmation').mockResolvedValue(false);
+
+            await ensurePackageJsonExists(tempDir, 'npm');
+
+            expect(mockProcessExit).toHaveBeenCalledWith(1);
+        });
+
+        it('should handle init command errors gracefully and exit', async () => {
+            const fs = require('fs');
+            fs.existsSync = (path: string) => !path.endsWith('package.json');
+
+            const utils = await import('../src/utils.ts');
+            promptConfirmationSpy = spyOn(utils, 'promptConfirmation').mockResolvedValue(true);
+            execCommandSpy = spyOn(utils, 'execCommand').mockImplementation(() => {
+                throw new Error('Command failed');
+            });
+
+            await ensurePackageJsonExists(tempDir, 'npm');
+
+            expect(mockProcessExit).toHaveBeenCalledWith(1);
         });
     });
 });

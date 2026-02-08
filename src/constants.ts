@@ -1,5 +1,12 @@
 export type PackageManager = 'npm' | 'yarn' | 'pnpm' | 'bun';
 
+export const PACKAGE_MANAGER_DISPLAY_NAMES: Record<PackageManager, string> = {
+    npm: 'npm',
+    yarn: 'Yarn',
+    pnpm: 'pnpm',
+    bun: 'Bun',
+};
+
 export const PM_LOCK_FILES = {
     npm: 'package-lock.json',
     yarn: 'yarn.lock',
