@@ -1,4 +1,5 @@
 import { join } from 'path';
+import { existsSync } from 'fs';
 import {
     COMMITLINT_CONFIG,
     SEMANTIC_RELEASE_CONFIG,
@@ -152,7 +153,7 @@ export async function ensurePackageJsonExists(cwd: string, pm: PackageManager): 
     const packageJsonPath = join(cwd, 'package.json');
 
     // Check if package.json exists
-    const exists = require('fs').existsSync(packageJsonPath);
+    const exists = existsSync(packageJsonPath);
 
     if (exists) {
         return;
@@ -171,15 +172,20 @@ export async function ensurePackageJsonExists(cwd: string, pm: PackageManager): 
     log(`\n📦 Initializing package.json with ${PACKAGE_MANAGER_DISPLAY_NAMES[pm]}...`, 'info');
 
     try {
-        let initCmd = `${pm} init`;
-        if (pm === 'npm') {
-            initCmd = 'npm init -y'; // Use -y for non-interactive
-        } else if (pm === 'pnpm') {
-            initCmd = 'pnpm init';
-        } else if (pm === 'bun') {
-            initCmd = 'bun init -y'; // bun supports -y
-        } else if (pm === 'yarn') {
-            initCmd = 'yarn init -y'; // yarn supports -y
+        let initCmd: string;
+        switch (pm) {
+            case 'npm':
+                initCmd = 'npm init -y'; // Use -y for non-interactive
+                break;
+            case 'pnpm':
+                initCmd = 'pnpm init';
+                break;
+            case 'bun':
+                initCmd = 'bun init -y'; // bun supports -y
+                break;
+            case 'yarn':
+                initCmd = 'yarn init -y'; // yarn supports -y
+                break;
         }
 
         execCommand(initCmd, cwd);
