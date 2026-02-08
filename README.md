@@ -33,23 +33,13 @@ See [QUICKSTART.md](./QUICKSTART.md) for a detailed getting started guide.
 
 ```bash
 # Using Bun
-bun install -g semantix
+bun install -g @vsokolov/semantix
 
 # Using npm
 npm install -g @vsokolov/semantix
 
 # Using pnpm
 pnpm add -g @vsokolov/semantix
-```
-
-### Local Installation
-
-```bash
-# Using Bun
-bun add -D @vsokolov/semantix
-
-# Using npm
-npm install --save-dev @vsokolov/semantix
 ```
 
 ## Usage
