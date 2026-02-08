@@ -6,6 +6,7 @@ import {
     setupLefthook,
     updatePackageJson,
     createGitHubWorkflow,
+    ensurePackageJsonExists,
 } from './configs';
 
 export class ConventionalCommitSetup {
@@ -65,6 +66,9 @@ export class ConventionalCommitSetup {
                 process.exit(0);
             }
         }
+
+        // Check if package.json exists and prompt to create if needed (after user confirms)
+        await ensurePackageJsonExists(this.cwd, this.packageManager);
 
         log('\n⏳ Starting installation...\n', 'info');
 
