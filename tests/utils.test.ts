@@ -90,11 +90,20 @@ describe('Utility Functions', () => {
                 expect(result).toBe('bun');
             });
 
-            it('should default to npm when multiple exist and skipConfirmation is true', async () => {
+            it('should default to first detected when multiple exist and skipConfirmation is true', async () => {
                 createMockLockFile(tempDir, 'npm');
                 createMockLockFile(tempDir, 'bun');
                 const result = await resolvePackageManager(tempDir, true);
+                // First detected based on PM_LOCK_FILES iteration order (npm comes first)
                 expect(result).toBe('npm');
+            });
+
+            it('should default to first detected when multiple non-npm managers exist and skipConfirmation is true', async () => {
+                createMockLockFile(tempDir, 'yarn');
+                createMockLockFile(tempDir, 'bun');
+                const result = await resolvePackageManager(tempDir, true);
+                // First detected based on PM_LOCK_FILES iteration order (yarn comes first)
+                expect(result).toBe('yarn');
             });
         });
     });

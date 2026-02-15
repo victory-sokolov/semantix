@@ -83,15 +83,13 @@ export async function resolvePackageManager(cwd: string, skipConfirmation: boole
         return detected[0];
     }
 
-    // Multiple lock files found - default to npm, prompt user if not in CI/skip mode
+    // Multiple lock files found - default to first detected, prompt user if not in CI/skip mode
     if (skipConfirmation) {
-        log('⚠️  Multiple lock files detected. Defaulting to npm.', 'warning');
-        return 'npm';
+        log(`⚠️  Multiple lock files detected. Defaulting to ${detected[0]}.`, 'warning');
+        return detected[0];
     }
 
-    // Put npm first in the options list so it's the default selection
-    const sortedOptions = detected.sort((a, b) => (a === 'npm' ? -1 : b === 'npm' ? 1 : 0));
-    return promptPackageManagerSelection(sortedOptions);
+    return promptPackageManagerSelection(detected);
 }
 
 export async function promptPackageManagerSelection(options: PackageManager[]): Promise<PackageManager> {
@@ -160,10 +158,23 @@ export function promptConfirmation(question: string): Promise<boolean> {
     });
 
     return new Promise((resolve) => {
+        let resolved = false;
+
+        const resolveOnce = (value: boolean) => {
+            if (!resolved) {
+                resolved = true;
+                rl.close();
+                resolve(value);
+            }
+        };
+
+        rl.on('close', () => {
+            resolveOnce(true);
+        });
+
         rl.question(`${question} (Y/n): `, (answer) => {
-            rl.close();
-            const normalized = answer.trim().toLowerCase();
-            resolve(normalized === '' || normalized === 'y' || normalized === 'yes');
+            const normalized = answer?.trim().toLowerCase() ?? '';
+            resolveOnce(normalized === '' || normalized === 'y' || normalized === 'yes');
         });
     });
 }
