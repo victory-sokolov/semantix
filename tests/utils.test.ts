@@ -8,8 +8,11 @@ import {
     writeJsonFile,
     writeTextFile,
     readJsonFile,
+    detectAllPackageManagers,
+    detectPackageManager,
+    resolvePackageManager,
 } from '../src/utils.ts';
-import { createTempDir, cleanupTempDir } from './test-helpers.ts';
+import { createTempDir, cleanupTempDir, createMockLockFile } from './test-helpers.ts';
 
 describe('Utility Functions', () => {
     let tempDir: string;
@@ -23,6 +26,77 @@ describe('Utility Functions', () => {
     afterEach(() => {
         cleanupTempDir(tempDir);
         consoleSpy.mockRestore();
+    });
+
+    describe('Package Manager Detection', () => {
+        describe('detectAllPackageManagers', () => {
+            it('should return empty array when no lock files exist', () => {
+                const result = detectAllPackageManagers(tempDir);
+                expect(result).toEqual([]);
+            });
+
+            it('should detect single package manager', () => {
+                createMockLockFile(tempDir, 'bun');
+                const result = detectAllPackageManagers(tempDir);
+                expect(result).toEqual(['bun']);
+            });
+
+            it('should detect multiple package managers', () => {
+                createMockLockFile(tempDir, 'npm');
+                createMockLockFile(tempDir, 'bun');
+                const result = detectAllPackageManagers(tempDir);
+                expect(result).toContain('npm');
+                expect(result).toContain('bun');
+                expect(result.length).toBe(2);
+            });
+
+            it('should detect all package managers when all lock files exist', () => {
+                createMockLockFile(tempDir, 'npm');
+                createMockLockFile(tempDir, 'yarn');
+                createMockLockFile(tempDir, 'pnpm');
+                createMockLockFile(tempDir, 'bun');
+                const result = detectAllPackageManagers(tempDir);
+                expect(result).toContain('npm');
+                expect(result).toContain('yarn');
+                expect(result).toContain('pnpm');
+                expect(result).toContain('bun');
+                expect(result.length).toBe(4);
+            });
+        });
+
+        describe('detectPackageManager', () => {
+            it('should return first detected package manager', () => {
+                createMockLockFile(tempDir, 'npm');
+                createMockLockFile(tempDir, 'bun');
+                const result = detectPackageManager(tempDir);
+                expect(['npm', 'bun']).toContain(result);
+            });
+
+            it('should default to npm when no lock files exist', () => {
+                const result = detectPackageManager(tempDir);
+                expect(result).toBe('npm');
+            });
+        });
+
+        describe('resolvePackageManager', () => {
+            it('should return npm when no lock files exist', async () => {
+                const result = await resolvePackageManager(tempDir, true);
+                expect(result).toBe('npm');
+            });
+
+            it('should return single detected package manager', async () => {
+                createMockLockFile(tempDir, 'bun');
+                const result = await resolvePackageManager(tempDir, true);
+                expect(result).toBe('bun');
+            });
+
+            it('should default to first detected when multiple exist and skipConfirmation is true', async () => {
+                createMockLockFile(tempDir, 'npm');
+                createMockLockFile(tempDir, 'bun');
+                const result = await resolvePackageManager(tempDir, true);
+                expect(result).toBe('npm');
+            });
+        });
     });
 
     describe('Logging functionality', () => {
