@@ -83,13 +83,15 @@ export async function resolvePackageManager(cwd: string, skipConfirmation: boole
         return detected[0];
     }
 
-    // Multiple lock files found - prompt user if not in CI/skip mode
+    // Multiple lock files found - default to npm, prompt user if not in CI/skip mode
     if (skipConfirmation) {
-        log(`⚠️  Multiple lock files detected. Defaulting to ${detected[0]}.`, 'warning');
-        return detected[0];
+        log('⚠️  Multiple lock files detected. Defaulting to npm.', 'warning');
+        return 'npm';
     }
 
-    return promptPackageManagerSelection(detected);
+    // Put npm first in the options list so it's the default selection
+    const sortedOptions = detected.sort((a, b) => (a === 'npm' ? -1 : b === 'npm' ? 1 : 0));
+    return promptPackageManagerSelection(sortedOptions);
 }
 
 export async function promptPackageManagerSelection(options: PackageManager[]): Promise<PackageManager> {
@@ -99,6 +101,16 @@ export async function promptPackageManagerSelection(options: PackageManager[]): 
     });
 
     return new Promise((resolve) => {
+        let resolved = false;
+
+        const resolveOnce = (value: PackageManager) => {
+            if (!resolved) {
+                resolved = true;
+                rl.close();
+                resolve(value);
+            }
+        };
+
         log('\n⚠️  Multiple package manager lock files detected.', 'warning');
         log('Which package manager do you want to use?', 'info');
 
@@ -106,14 +118,22 @@ export async function promptPackageManagerSelection(options: PackageManager[]): 
             console.log(`  ${index + 1}. ${pm}`);
         });
 
+        rl.on('close', () => {
+            resolveOnce(options[0]);
+        });
+
         rl.question(`Enter selection (1-${options.length}): `, (answer) => {
-            rl.close();
+            if (!answer?.trim()) {
+                log('No selection provided. Defaulting to first option.', 'warning');
+                resolveOnce(options[0]);
+                return;
+            }
             const selection = parseInt(answer.trim(), 10);
             if (selection >= 1 && selection <= options.length) {
-                resolve(options[selection - 1]);
+                resolveOnce(options[selection - 1]);
             } else {
                 log('Invalid selection. Defaulting to first option.', 'warning');
-                resolve(options[0]);
+                resolveOnce(options[0]);
             }
         });
     });

@@ -90,7 +90,7 @@ describe('Utility Functions', () => {
                 expect(result).toBe('bun');
             });
 
-            it('should default to first detected when multiple exist and skipConfirmation is true', async () => {
+            it('should default to npm when multiple exist and skipConfirmation is true', async () => {
                 createMockLockFile(tempDir, 'npm');
                 createMockLockFile(tempDir, 'bun');
                 const result = await resolvePackageManager(tempDir, true);
