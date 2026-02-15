@@ -10,29 +10,8 @@ permissions:
   id-token: write
 
 jobs:
-  ci:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Bun with cache
-        uses: ./.github/actions/setup-bun-cache
-
-      - name: Type check
-        run: bun run typecheck
-
-      - name: Lint
-        run: bun run lint
-
-      - name: Format check
-        run: bun run format:check
-
-      - name: Run tests
-        run: bun run test
-
   release:
-    needs: ci
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,13 +19,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Bun with cache
-        uses: ./.github/actions/setup-bun-cache
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Setup dependencies with cache
+        uses: victory-sokolov/githooks/.github/actions/node-deps-cache@main
         with:
-          node-version: '22'
+          package-manager: bun
+          node-version: 24
 
       - name: Build
         run: bun run build

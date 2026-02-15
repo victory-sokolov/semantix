@@ -86,7 +86,7 @@ export const getGithubWorkflow = (pm: PackageManager = 'bun') => {
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: '${pm}'`;
 
     const installCmd = pm === 'npm' ? 'npm ci' : `${pm} install`;
