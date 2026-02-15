@@ -1,3 +1,17 @@
+# [1.1.0](https://github.com/victory-sokolov/semantix/compare/v1.0.0...v1.1.0) (2026-02-15)
+
+
+### Bug Fixes
+
+* refactor config ([670d780](https://github.com/victory-sokolov/semantix/commit/670d7804333398697140f65204561ec83d2de36b))
+* use npm as defautl package manager ([21517fe](https://github.com/victory-sokolov/semantix/commit/21517fe5c6e7d335e5692371fa18276475f8e498))
+
+
+### Features
+
+* create package.json if it doesnt exists ([a10e7d3](https://github.com/victory-sokolov/semantix/commit/a10e7d383500327001ac1dcd12a3974009208a0b))
+* resolve several *.lock files ([11bae8b](https://github.com/victory-sokolov/semantix/commit/11bae8b3833606d9d81e9e41c3d971d9be83d553))
+
 # 1.0.0 (2026-02-02)
 
 
@@ -11,4 +25,3 @@
 * fix testcases ([684203c](https://github.com/victory-sokolov/semantix/commit/684203c2b45b969646abd390b2b8d4a29012a3a5))
 * **tests:** restore mocks in setup.test.ts to prevent leak to other tests ([7b46bac](https://github.com/victory-sokolov/semantix/commit/7b46baca43c20b859c8bfd493ccf6240f5290e0e))
 * update ASCII format ([1ef738b](https://github.com/victory-sokolov/semantix/commit/1ef738b0225f201638bfbba1d9e5cc4d8882babc))
-
