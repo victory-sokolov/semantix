@@ -1,14 +1,8 @@
 name: CI
 
-concurrency:
-  group: ${{ github.ref }}
-  cancel-in-progress: true
-
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [main]
     paths:
       - 'package.json'
       - 'bun.lock'
@@ -16,9 +10,7 @@ on:
       - 'tests/**'
       - '.github/workflows/**'
   pull_request:
-    branches:
-      - main
-      - master
+    branches: [main]
     paths:
       - 'package.json'
       - 'bun.lock'
@@ -33,22 +25,4 @@ permissions:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Bun with cache
-        uses: ./.github/actions/setup-bun-cache
-
-      - name: Type check
-        run: bun run typecheck
-
-      - name: Lint
-        run: bun run lint
-
-      - name: Format check
-        run: bun run format:check
-
-      - name: Run tests
-        run: bun run test
+    uses: victory-sokolov/githooks/.github/workflows/node-ci.yml@main

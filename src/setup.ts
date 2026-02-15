@@ -1,5 +1,5 @@
 import { DEPENDENCIES, ASCII_ART, type PackageManager } from './constants';
-import { log, execCommand, detectPackageManager, getInstallCommand, promptConfirmation } from './utils';
+import { log, execCommand, resolvePackageManager, getInstallCommand, promptConfirmation } from './utils';
 import {
     createCommitlintConfig,
     createSemanticReleaseConfig,
@@ -11,26 +11,25 @@ import {
 
 export class ConventionalCommitSetup {
     private cwd: string;
-    private packageManager: PackageManager;
+    private packageManager: PackageManager | null = null;
     private skipConfirmation: boolean;
 
     constructor(cwd: string = process.cwd(), skipConfirmation = false) {
         this.cwd = cwd;
-        this.packageManager = detectPackageManager(cwd);
         this.skipConfirmation = skipConfirmation || process.env.CI === 'true' || process.env.NODE_ENV === 'test';
     }
 
-    private installDependencies() {
+    private installDependencies(packageManager: PackageManager) {
         log('📦 Installing dependencies...', 'info');
 
-        const cmd = getInstallCommand(this.packageManager, DEPENDENCIES);
+        const cmd = getInstallCommand(packageManager, DEPENDENCIES);
         execCommand(cmd, this.cwd);
 
         log('✓ Dependencies installed', 'success');
     }
 
-    private showPreview() {
-        const installCmd = getInstallCommand(this.packageManager, DEPENDENCIES);
+    private showPreview(packageManager: PackageManager) {
+        const installCmd = getInstallCommand(packageManager, DEPENDENCIES);
 
         log('\n📋 The following will be installed and configured:', 'info');
         log('\n📦 Packages to install:', 'info');
@@ -55,9 +54,12 @@ export class ConventionalCommitSetup {
         console.log(ASCII_ART);
 
         log('\n🚀 Setting up Conventional Commits...\n', 'info');
-        log(`ℹ️  Detected package manager: ${this.packageManager}`, 'info');
 
-        this.showPreview();
+        const packageManager = await resolvePackageManager(this.cwd, this.skipConfirmation);
+        this.packageManager = packageManager;
+        log(`ℹ️  Using package manager: ${packageManager}`, 'info');
+
+        this.showPreview(packageManager);
 
         if (!this.skipConfirmation) {
             const confirmed = await promptConfirmation('\nDo you want to proceed with the installation');
@@ -68,21 +70,21 @@ export class ConventionalCommitSetup {
         }
 
         // Check if package.json exists and prompt to create if needed (after user confirms)
-        await ensurePackageJsonExists(this.cwd, this.packageManager);
+        await ensurePackageJsonExists(this.cwd, packageManager);
 
         log('\n⏳ Starting installation...\n', 'info');
 
         try {
-            this.installDependencies();
+            this.installDependencies(packageManager);
             createCommitlintConfig(this.cwd);
             createSemanticReleaseConfig(this.cwd);
-            setupLefthook(this.cwd, this.packageManager);
+            setupLefthook(this.cwd, packageManager);
             updatePackageJson(this.cwd);
-            createGitHubWorkflow(this.cwd, this.packageManager);
+            createGitHubWorkflow(this.cwd, packageManager);
 
             log('\n✨ Setup completed successfully!\n', 'success');
 
-            const runCmd = this.packageManager === 'bun' ? 'bun run' : `${this.packageManager} run`;
+            const runCmd = packageManager === 'bun' ? 'bun run' : `${packageManager} run`;
 
             log('Next steps:', 'info');
             log('1. Commit your changes with a conventional commit message', 'info');

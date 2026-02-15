@@ -7,9 +7,17 @@ import {
     cleanupTempDir,
     createTestPackageFile,
     createBunLockFile,
-    createMockLockFile,
     mockConfigsAndUtils,
 } from './test-helpers.ts';
+
+async function setupTestEnvironment(tempDir: string) {
+    const mocks = mockConfigsAndUtils();
+    createTestPackageFile(tempDir);
+    createBunLockFile(tempDir);
+    const setup = new ConventionalCommitSetup(tempDir, true);
+    await setup.setup();
+    return { mocks, setup };
+}
 
 describe('Conventional Commit Setup Class', () => {
     let tempDir: string;
@@ -46,33 +54,10 @@ describe('Conventional Commit Setup Class', () => {
             const setup = new ConventionalCommitSetup(undefined, true);
             expect((setup as unknown as { cwd: string }).cwd).toBe(process.cwd());
         });
-    });
 
-    describe('Package Manager Detection', () => {
-        it('should detect bun package manager from bun.lock file', () => {
-            createMockLockFile(tempDir, 'bun');
-
+        it('should have null packageManager before setup is called', () => {
             const setup = new ConventionalCommitSetup(tempDir, true);
-            expect((setup as unknown as { packageManager: string }).packageManager).toBe('bun');
-        });
-
-        it('should detect npm package manager from package-lock.json file', () => {
-            createMockLockFile(tempDir, 'npm');
-
-            const setup = new ConventionalCommitSetup(tempDir, true);
-            expect((setup as unknown as { packageManager: string }).packageManager).toBe('npm');
-        });
-
-        it('should detect yarn package manager from yarn.lock file', () => {
-            createMockLockFile(tempDir, 'yarn');
-
-            const setup = new ConventionalCommitSetup(tempDir, true);
-            expect((setup as unknown as { packageManager: string }).packageManager).toBe('yarn');
-        });
-
-        it('should default to bun when no lock file is found', () => {
-            const setup = new ConventionalCommitSetup(tempDir, true);
-            expect((setup as unknown as { packageManager: string }).packageManager).toBe('bun');
+            expect((setup as unknown as { packageManager: string | null }).packageManager).toBe(null);
         });
     });
 
@@ -91,13 +76,8 @@ describe('Conventional Commit Setup Class', () => {
         });
 
         it('should call all configuration functions in order', async () => {
-            mocks = mockConfigsAndUtils();
-
-            createTestPackageFile(tempDir);
-            createBunLockFile(tempDir);
-
-            const setup = new ConventionalCommitSetup(tempDir, true);
-            await setup.setup();
+            const result = await setupTestEnvironment(tempDir);
+            mocks = result.mocks;
 
             expect(mocks.execCommand).toHaveBeenCalled();
             expect(mocks.createCommitlintConfig).toHaveBeenCalledWith(tempDir);
@@ -127,13 +107,8 @@ describe('Conventional Commit Setup Class', () => {
 
     describe('installDependencies', () => {
         it('should call execCommand with correct install command', async () => {
-            mocks = mockConfigsAndUtils();
-
-            createTestPackageFile(tempDir);
-            createBunLockFile(tempDir);
-
-            const setup = new ConventionalCommitSetup(tempDir, true);
-            await setup.setup();
+            const result = await setupTestEnvironment(tempDir);
+            mocks = result.mocks;
 
             expect(mocks.execCommand).toHaveBeenCalled();
             const installCommand = mocks.execCommand.mock.calls[0][0];

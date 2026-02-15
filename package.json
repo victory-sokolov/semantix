@@ -30,6 +30,7 @@
         "format": "oxfmt src tests --write",
         "format:check": "oxfmt --check src tests",
         "typecheck": "tsc --noEmit",
+        "check": "bun run typecheck && bun run lint && bun run format:check && bun run test && bun run jscpd",
         "test": "bun test",
         "test:coverage": "bun test --coverage",
         "prepublishOnly": "bun run build",
