@@ -75,10 +75,10 @@ export function createSemanticReleaseConfig(cwd: string) {
                         `✓ Merged release config and converted ${basename(existingConfigPath)} to .releaserc.json`,
                         'success',
                     );
-                } catch {
+                } catch (error) {
                     log(
-                        `✓ Merged release config to .releaserc.json (could not remove old ${basename(existingConfigPath)})`,
-                        'success',
+                        `✓ Merged release config to .releaserc.json. ⚠️ Could not remove old config file '${basename(existingConfigPath)}': ${error instanceof Error ? error.message : String(error)}`,
+                        'warning',
                     );
                 }
             } else {
