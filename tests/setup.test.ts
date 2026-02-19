@@ -98,6 +98,7 @@ describe('Conventional Commit Setup Class', () => {
 
             const setup = new ConventionalCommitSetup(tempDir, true);
 
+            // eslint-disable-next-line @typescript-eslint/await-thenable
             await expect(setup.setup()).rejects.toThrow();
 
             execSpy.mockRestore();

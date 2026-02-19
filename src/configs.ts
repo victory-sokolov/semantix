@@ -1,5 +1,6 @@
 import { join, basename } from 'path';
-import { existsSync, unlinkSync } from 'fs';
+import { existsSync, unlinkSync, rmSync } from 'fs';
+import { execSync } from 'child_process';
 import {
     COMMITLINT_CONFIG,
     COMMITLINT_CONFIG_FILES,
@@ -21,6 +22,7 @@ import {
     findConfigFile,
     readJsonFileIfExists,
     deepMerge,
+    getRunInstallCommand,
 } from './utils';
 
 export function createCommitlintConfig(cwd: string) {
@@ -95,6 +97,99 @@ export function createSemanticReleaseConfig(cwd: string) {
     // No existing config, create new one as JSON
     writeJsonFile(newConfigPath, SEMANTIC_RELEASE_CONFIG);
     log('✓ .releaserc.json created', 'success');
+}
+
+/**
+ * Detect if Husky is installed in the project
+ */
+export function detectHusky(cwd: string): boolean {
+    // Check for .husky directory
+    const huskyDir = join(cwd, '.husky');
+    if (existsSync(huskyDir)) {
+        return true;
+    }
+
+    // Check for husky in package.json dependencies
+    const packageJsonPath = join(cwd, 'package.json');
+    const packageJson = readJsonFileIfExists(packageJsonPath);
+    if (packageJson) {
+        const allDeps = {
+            ...(packageJson.devDependencies as Record<string, string> | undefined),
+            ...(packageJson.dependencies as Record<string, string> | undefined),
+        };
+        if ('husky' in allDeps) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Remove Husky from the project
+ */
+export function removeHusky(cwd: string, pm: PackageManager): void {
+    log('🗑️  Removing Husky...', 'info');
+
+    // 1. Unset git core.hooksPath
+    try {
+        execSync('git config --unset-all --local core.hooksPath', { cwd, stdio: 'pipe' });
+        log('✓ Git core.hooksPath unset', 'success');
+    } catch {
+        // Config might not exist, that's fine
+    }
+
+    // 2. Remove .husky directory
+    const huskyDir = join(cwd, '.husky');
+    if (existsSync(huskyDir)) {
+        try {
+            rmSync(huskyDir, { recursive: true, force: true });
+            log('✓ .husky directory removed', 'success');
+        } catch (error) {
+            log(
+                `⚠️ Could not remove .husky directory: ${error instanceof Error ? error.message : String(error)}`,
+                'warning',
+            );
+        }
+    }
+
+    // 3. Remove husky from package.json
+    const packageJsonPath = join(cwd, 'package.json');
+    const packageJson = readJsonFileIfExists(packageJsonPath);
+    if (packageJson) {
+        let modified = false;
+
+        if (packageJson.devDependencies && typeof packageJson.devDependencies === 'object') {
+            const deps = packageJson.devDependencies as Record<string, string>;
+            if ('husky' in deps) {
+                delete deps.husky;
+                modified = true;
+            }
+        }
+
+        if (packageJson.dependencies && typeof packageJson.dependencies === 'object') {
+            const deps = packageJson.dependencies as Record<string, string>;
+            if ('husky' in deps) {
+                delete deps.husky;
+                modified = true;
+            }
+        }
+
+        if (modified) {
+            writeJsonFile(packageJsonPath, packageJson);
+            log('✓ husky removed from package.json', 'success');
+        }
+    }
+
+    // 4. Run install to update lock file
+    try {
+        execCommand(getRunInstallCommand(pm), cwd);
+        log('✓ Dependencies updated', 'success');
+    } catch (error) {
+        log(`⚠️ Could not update dependencies: ${error instanceof Error ? error.message : String(error)}`, 'warning');
+    }
+
+    log('✓ Husky removed successfully', 'success');
 }
 
 export function setupLefthook(cwd: string, pm: PackageManager) {
@@ -251,16 +346,16 @@ export async function ensurePackageJsonExists(cwd: string, pm: PackageManager): 
         let initCmd: string;
         switch (pm) {
             case 'npm':
-                initCmd = 'npm init -y'; // Use -y for non-interactive
+                initCmd = 'npm init -y';
                 break;
             case 'pnpm':
                 initCmd = 'pnpm init';
                 break;
             case 'bun':
-                initCmd = 'bun init -y'; // bun supports -y
+                initCmd = 'bun init -y';
                 break;
             case 'yarn':
-                initCmd = 'yarn init -y'; // yarn supports -y
+                initCmd = 'yarn init -y';
                 break;
         }
 

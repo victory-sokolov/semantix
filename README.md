@@ -4,18 +4,6 @@ A TypeScript CLI tool to automatically configure conventional commits, semantic-
 
 ## Quick Start
 
-```bash
-# Install globally
-bun install -g @vsokolov/semantix
-
-# Run in your project
-cd your-project
-semantix
-
-# Make a commit
-git commit -m "feat: add new feature"
-```
-
 See [QUICKSTART.md](./QUICKSTART.md) for a detailed getting started guide.
 
 ## Features
