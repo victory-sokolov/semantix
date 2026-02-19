@@ -2,6 +2,7 @@ import { execSync } from 'child_process';
 import { existsSync, writeFileSync, readFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { createInterface } from 'readline';
+import { isPlainObject } from '@vsokolov/utils';
 import { PM_LOCK_FILES, type PackageManager } from './constants';
 
 export function log(message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info') {
@@ -177,4 +178,58 @@ export function promptConfirmation(question: string): Promise<boolean> {
             resolveOnce(normalized === '' || normalized === 'y' || normalized === 'yes');
         });
     });
+}
+
+/**
+ * Check if any variant of a config file exists, return the found path
+ */
+export function findConfigFile(cwd: string, patterns: string[]): string | null {
+    for (const pattern of patterns) {
+        const filePath = join(cwd, pattern);
+        if (existsSync(filePath)) {
+            return filePath;
+        }
+    }
+    return null;
+}
+
+/**
+ * Read JSON file safely, return null if doesn't exist or invalid
+ */
+export function readJsonFileIfExists(filePath: string): Record<string, unknown> | null {
+    try {
+        if (!existsSync(filePath)) {
+            return null;
+        }
+        return JSON.parse(readFileSync(filePath, 'utf-8')) as Record<string, unknown>;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Deep merge two objects - EXISTING values take priority (don't overwrite user's custom config)
+ * Only adds keys that don't exist in target
+ */
+export function deepMerge<T extends Record<string, unknown>>(target: T, source: Partial<T>): T {
+    const result = { ...target } as T;
+
+    for (const key of Object.keys(source) as (keyof T)[]) {
+        const sourceValue = source[key];
+        const targetValue = result[key];
+
+        // If key doesn't exist in target, add it from source
+        if (targetValue === undefined) {
+            result[key] = sourceValue as T[keyof T];
+        }
+        // If both are plain objects, recursively merge
+        else if (isPlainObject(targetValue) && isPlainObject(sourceValue)) {
+            result[key] = deepMerge(
+                targetValue as Record<string, unknown>,
+                sourceValue as Record<string, unknown>,
+            ) as T[keyof T];
+        }
+    }
+
+    return result;
 }

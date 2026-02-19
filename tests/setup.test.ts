@@ -98,7 +98,7 @@ describe('Conventional Commit Setup Class', () => {
 
             const setup = new ConventionalCommitSetup(tempDir, true);
 
-            await expect(setup.setup()).rejects.toThrow();
+            expect(setup.setup()).rejects.toThrow();
 
             execSpy.mockRestore();
             configSpy.mockRestore();

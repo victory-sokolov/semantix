@@ -14,6 +14,27 @@ export const PM_LOCK_FILES = {
     bun: ['bun.lockb', 'bun.lock'],
 } as const;
 
+export const COMMITLINT_CONFIG_FILES = [
+    '.commitlintrc.json',
+    '.commitlintrc.js',
+    '.commitlintrc.yml',
+    '.commitlintrc.yaml',
+    'commitlint.config.js',
+    'commitlint.config.cjs',
+    'commitlint.config.mjs',
+];
+
+export const RELEASE_CONFIG_FILES = [
+    '.releaserc',
+    '.releaserc.json',
+    '.releaserc.js',
+    '.releaserc.mjs',
+    '.releaserc.cjs',
+    '.releaserc.yml',
+    'release.config.js',
+    'release.config.cjs',
+];
+
 export const DEPENDENCIES = [
     '@semantic-release/changelog',
     '@semantic-release/git',

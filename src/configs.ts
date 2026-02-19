@@ -1,7 +1,9 @@
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { join, basename } from 'path';
+import { existsSync, unlinkSync } from 'fs';
 import {
     COMMITLINT_CONFIG,
+    COMMITLINT_CONFIG_FILES,
+    RELEASE_CONFIG_FILES,
     SEMANTIC_RELEASE_CONFIG,
     getGithubWorkflow,
     getLefthookConfig,
@@ -16,35 +18,99 @@ import {
     execCommand,
     readJsonFile,
     promptConfirmation,
+    findConfigFile,
+    readJsonFileIfExists,
+    deepMerge,
 } from './utils';
 
 export function createCommitlintConfig(cwd: string) {
     log('📝 Creating commitlint configuration...', 'info');
 
-    writeTextFile(join(cwd, 'commitlint.config.js'), `export default ${JSON.stringify(COMMITLINT_CONFIG, null, 4)};`);
+    const existingConfigPath = findConfigFile(cwd, COMMITLINT_CONFIG_FILES);
 
-    log('✓ commitlint.config.js created', 'success');
+    if (existingConfigPath) {
+        // Try to read and merge with existing config
+        const existingConfig = readJsonFileIfExists(existingConfigPath);
+
+        if (existingConfig) {
+            // Deep merge: existing config takes priority, add missing keys from default
+            const mergedConfig = deepMerge(existingConfig, COMMITLINT_CONFIG);
+            writeJsonFile(existingConfigPath, mergedConfig);
+            log(`✓ Merged commitlint config with existing ${basename(existingConfigPath)}`, 'success');
+            return;
+        }
+
+        // If we can't read it as JSON (e.g., .js file), skip with warning
+        log(`⚠️ ${basename(existingConfigPath)} already exists but is not JSON, skipping...`, 'warning');
+        return;
+    }
+
+    // No existing config, create new one as JSON
+    writeJsonFile(join(cwd, '.commitlintrc.json'), COMMITLINT_CONFIG);
+    log('✓ .commitlintrc.json created', 'success');
 }
 
 export function createSemanticReleaseConfig(cwd: string) {
     log('📝 Creating semantic-release configuration...', 'info');
 
-    const configContent = `const config = ${JSON.stringify(SEMANTIC_RELEASE_CONFIG, null, 4)};
+    const existingConfigPath = findConfigFile(cwd, RELEASE_CONFIG_FILES);
+    const newConfigPath = join(cwd, '.releaserc.json');
 
-export default config;
-`;
-    writeTextFile(join(cwd, '.releaserc.mjs'), configContent);
+    if (existingConfigPath) {
+        // Try to read and merge with existing config
+        const existingConfig = readJsonFileIfExists(existingConfigPath);
 
-    log('✓ .releaserc.mjs created', 'success');
+        if (existingConfig) {
+            // Deep merge: existing config takes priority, add missing keys from default
+            const mergedConfig = deepMerge(existingConfig, SEMANTIC_RELEASE_CONFIG);
+
+            // Always write as JSON format
+            writeJsonFile(newConfigPath, mergedConfig);
+
+            // Delete old config file if it's different from the new path
+            if (existingConfigPath !== newConfigPath) {
+                try {
+                    unlinkSync(existingConfigPath);
+                    log(
+                        `✓ Merged release config and converted ${basename(existingConfigPath)} to .releaserc.json`,
+                        'success',
+                    );
+                } catch {
+                    log(
+                        `✓ Merged release config to .releaserc.json (could not remove old ${basename(existingConfigPath)})`,
+                        'success',
+                    );
+                }
+            } else {
+                log('✓ Merged release config with existing .releaserc.json', 'success');
+            }
+            return;
+        }
+
+        // If we can't read it as JSON (e.g., .js file), skip with warning
+        log(`⚠️ ${basename(existingConfigPath)} already exists but is not JSON, skipping...`, 'warning');
+        return;
+    }
+
+    // No existing config, create new one as JSON
+    writeJsonFile(newConfigPath, SEMANTIC_RELEASE_CONFIG);
+    log('✓ .releaserc.json created', 'success');
 }
 
 export function setupLefthook(cwd: string, pm: PackageManager) {
     log('🥊 Setting up Lefthook...', 'info');
 
-    // Create lefthook.yml
-    writeTextFile(join(cwd, 'lefthook.yml'), getLefthookConfig(pm));
+    const lefthookPath = join(cwd, 'lefthook.yml');
 
-    // Install Lefthook
+    // Check if lefthook.yml already exists
+    if (existsSync(lefthookPath)) {
+        log('⚠️ lefthook.yml already exists, skipping...', 'warning');
+    } else {
+        // Create lefthook.yml
+        writeTextFile(lefthookPath, getLefthookConfig(pm));
+        log('✓ lefthook.yml created', 'success');
+    }
+
     try {
         let execCmd = 'npx lefthook install';
         if (pm === 'bun') {
@@ -58,9 +124,12 @@ export function setupLefthook(cwd: string, pm: PackageManager) {
         }
 
         execCommand(execCmd, cwd);
-        log('✓ Lefthook installed and configured', 'success');
+        log('✓ Lefthook installed', 'success');
     } catch (error) {
-        log(`⚠️ Failed to run 'lefthook install': ${error}`, 'warning');
+        log(
+            `⚠️ Failed to run 'lefthook install': ${error instanceof Error ? error.message : String(error)}`,
+            'warning',
+        );
     }
 }
 
@@ -78,7 +147,7 @@ export function updatePackageJson(cwd: string) {
     try {
         packageJson = readJsonFile(packageJsonPath) as Record<string, unknown>;
     } catch (error) {
-        throw new Error(`Failed to read package.json: ${error}`);
+        throw new Error(`Failed to read package.json: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     if (!packageJson.scripts || typeof packageJson.scripts !== 'object') {
@@ -134,7 +203,7 @@ export function updatePackageJson(cwd: string) {
             log(`ℹ️ Conflicts resolved for scripts: ${conflicts.join(', ')}`, 'info');
         }
     } catch (error) {
-        throw new Error(`Failed to write package.json: ${error}`);
+        throw new Error(`Failed to write package.json: ${error instanceof Error ? error.message : String(error)}`);
     }
 }
 
@@ -142,9 +211,16 @@ export function createGitHubWorkflow(cwd: string, pm: PackageManager) {
     log('🔄 Creating GitHub Actions workflow...', 'info');
 
     const workflowDir = join(cwd, '.github', 'workflows');
-    ensureDirectoryExists(workflowDir);
+    const releaseWorkflowPath = join(workflowDir, 'release.yml');
 
-    writeTextFile(join(workflowDir, 'release.yml'), getGithubWorkflow(pm));
+    // Check if release.yml already exists
+    if (existsSync(releaseWorkflowPath)) {
+        log('⚠️ .github/workflows/release.yml already exists, skipping...', 'warning');
+        return;
+    }
+
+    ensureDirectoryExists(workflowDir);
+    writeTextFile(releaseWorkflowPath, getGithubWorkflow(pm));
 
     log('✓ GitHub Actions workflow created', 'success');
 }
@@ -191,7 +267,7 @@ export async function ensurePackageJsonExists(cwd: string, pm: PackageManager): 
         execCommand(initCmd, cwd);
         log('✓ package.json created', 'success');
     } catch (error) {
-        log(`❌ Failed to create package.json: ${error}`, 'error');
+        log(`❌ Failed to create package.json: ${error instanceof Error ? error.message : String(error)}`, 'error');
         process.exit(1);
     }
 }

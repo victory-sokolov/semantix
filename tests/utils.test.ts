@@ -1,6 +1,6 @@
 import { describe, it, expect, spyOn, beforeEach, afterEach } from 'bun:test';
 import { join } from 'path';
-import { existsSync, readFileSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'fs';
 import {
     log,
     getInstallCommand,
@@ -11,6 +11,9 @@ import {
     detectAllPackageManagers,
     detectPackageManager,
     resolvePackageManager,
+    findConfigFile,
+    readJsonFileIfExists,
+    deepMerge,
 } from '../src/utils.ts';
 import { createTempDir, cleanupTempDir, createMockLockFile } from './test-helpers.ts';
 
@@ -299,6 +302,132 @@ describe('Utility Functions', () => {
                 const result = readJsonFile(testFile);
 
                 expect(result).toEqual(testData);
+            });
+        });
+    });
+
+    describe('Config File Utilities', () => {
+        describe('findConfigFile', () => {
+            it('should return null when no config files exist', () => {
+                const result = findConfigFile(tempDir, ['.commitlintrc.json', 'commitlint.config.js']);
+                expect(result).toBeNull();
+            });
+
+            it('should return path to first found config file', () => {
+                const configPath = join(tempDir, '.commitlintrc.json');
+                writeFileSync(configPath, '{}');
+
+                const result = findConfigFile(tempDir, ['.commitlintrc.json', 'commitlint.config.js']);
+
+                expect(result).toBe(configPath);
+            });
+
+            it('should return first matching file in pattern order', () => {
+                const secondPattern = join(tempDir, 'commitlint.config.js');
+                writeFileSync(secondPattern, '{}');
+
+                const result = findConfigFile(tempDir, ['.commitlintrc.json', 'commitlint.config.js']);
+
+                // First pattern doesn't exist, second does
+                expect(result).toBe(secondPattern);
+            });
+        });
+
+        describe('readJsonFileIfExists', () => {
+            it('should return null for non-existent file', () => {
+                const result = readJsonFileIfExists(join(tempDir, 'nonexistent.json'));
+                expect(result).toBeNull();
+            });
+
+            it('should return parsed JSON for existing valid file', () => {
+                const testFile = join(tempDir, 'valid.json');
+                const testData = { key: 'value', nested: { inner: 123 } };
+                writeFileSync(testFile, JSON.stringify(testData));
+
+                const result = readJsonFileIfExists(testFile);
+
+                expect(result).toEqual(testData);
+            });
+
+            it('should return null for invalid JSON', () => {
+                const testFile = join(tempDir, 'invalid.json');
+                writeFileSync(testFile, '{ invalid json }');
+
+                const result = readJsonFileIfExists(testFile);
+
+                expect(result).toBeNull();
+            });
+        });
+
+        describe('deepMerge', () => {
+            it('should add missing keys from source to target', () => {
+                const target: Record<string, unknown> = { a: 1 };
+                const source: Record<string, unknown> = { b: 2, c: 3 };
+
+                const result = deepMerge(target, source);
+
+                expect(result).toEqual({ a: 1, b: 2, c: 3 });
+            });
+
+            it('should preserve existing target values', () => {
+                const target: Record<string, unknown> = { a: 1, b: 'original' };
+                const source: Record<string, unknown> = { b: 'new', c: 3 };
+
+                const result = deepMerge(target, source);
+
+                expect(result.b).toBe('original');
+            });
+
+            it('should recursively merge nested objects', () => {
+                const target: Record<string, unknown> = { outer: { existing: 'value' } };
+                const source: Record<string, unknown> = { outer: { added: 'new' } };
+
+                const result = deepMerge(target, source);
+
+                expect(result.outer).toEqual({ existing: 'value', added: 'new' });
+            });
+
+            it('should preserve nested object values in target', () => {
+                const target: Record<string, unknown> = { rules: { 'type-enum': [2, 'always', ['feat']] } };
+                const source: Record<string, unknown> = {
+                    rules: { 'type-enum': [1, 'never', ['fix']], 'subject-case': [2, 'never', ['upper-case']] },
+                };
+
+                const result = deepMerge(target, source);
+                const rules = result.rules as Record<string, unknown>;
+
+                // Existing rule should be preserved
+                expect(rules['type-enum']).toEqual([2, 'always', ['feat']]);
+                // Missing rule should be added
+                expect(rules['subject-case']).toEqual([2, 'never', ['upper-case']]);
+            });
+
+            it('should not merge arrays (treat them as values)', () => {
+                const target: Record<string, unknown> = { plugins: ['plugin-a'] };
+                const source: Record<string, unknown> = { plugins: ['plugin-b'] };
+
+                const result = deepMerge(target, source);
+
+                // Array should be preserved from target
+                expect(result.plugins).toEqual(['plugin-a']);
+            });
+
+            it('should handle empty target', () => {
+                const target: Record<string, unknown> = {};
+                const source: Record<string, unknown> = { a: 1, b: { c: 2 } };
+
+                const result = deepMerge(target, source);
+
+                expect(result).toEqual({ a: 1, b: { c: 2 } });
+            });
+
+            it('should handle empty source', () => {
+                const target: Record<string, unknown> = { a: 1, b: 2 };
+                const source: Record<string, unknown> = {};
+
+                const result = deepMerge(target, source);
+
+                expect(result).toEqual({ a: 1, b: 2 });
             });
         });
     });
