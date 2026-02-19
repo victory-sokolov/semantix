@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/victory-sokolov/semantix/compare/v1.1.0...v1.2.0) (2026-02-19)
+
+
+### Features
+
+* dont overwrite existing files ([c6f0ea9](https://github.com/victory-sokolov/semantix/commit/c6f0ea98faeff1655fa6e277edfa9e5a20d292b3))
+
 # [1.1.0](https://github.com/victory-sokolov/semantix/compare/v1.0.0...v1.1.0) (2026-02-15)
 
 
