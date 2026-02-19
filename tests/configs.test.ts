@@ -13,7 +13,7 @@ import { COMMITLINT_CONFIG, SEMANTIC_RELEASE_CONFIG } from '../src/constants.ts'
 import { writeTextFile, writeJsonFile } from '../src/utils.ts';
 import { createTempDir, cleanupTempDir, assertPackageJsonScripts } from './test-helpers.ts';
 
-mock.module('child_process', () => ({
+void mock.module('child_process', () => ({
     execSync: () => undefined,
 }));
 
@@ -82,51 +82,98 @@ describe('Configuration File Generators', () => {
     });
 
     describe('createCommitlintConfig', () => {
-        it('should create commitlint.config.js with correct content', () => {
+        it('should create .commitlintrc.json with correct content', () => {
             createCommitlintConfig(tempDir);
 
-            const configPath = join(tempDir, 'commitlint.config.js');
+            const configPath = join(tempDir, '.commitlintrc.json');
             expect(existsSync(configPath)).toBe(true);
 
             const content = readFileSync(configPath, 'utf-8');
-            expect(content).toContain('export default');
-            expect(content).toContain(JSON.stringify(COMMITLINT_CONFIG, null, 4));
+            const parsed = JSON.parse(content);
+            expect(parsed).toEqual(COMMITLINT_CONFIG);
         });
 
-        it('should handle existing file by overwriting it', () => {
-            const configPath = join(tempDir, 'commitlint.config.js');
-            writeFileSync(configPath, 'old content');
+        it('should merge with existing JSON config', () => {
+            const configPath = join(tempDir, '.commitlintrc.json');
+            const existingConfig = { extends: ['custom-preset'] };
+            writeFileSync(configPath, JSON.stringify(existingConfig));
 
             createCommitlintConfig(tempDir);
 
             const content = readFileSync(configPath, 'utf-8');
-            expect(content).toContain('export default');
-            expect(content).not.toBe('old content');
+            const parsed = JSON.parse(content);
+            // Existing extends should be preserved
+            expect(parsed.extends).toEqual(['custom-preset']);
+            // Default rules should be added
+            expect(parsed.rules).toBeDefined();
+        });
+
+        it('should skip if existing config is not JSON (e.g., .js file)', () => {
+            const configPath = join(tempDir, 'commitlint.config.js');
+            writeFileSync(configPath, 'export default {}');
+
+            createCommitlintConfig(tempDir);
+
+            // Original file should not be modified
+            const content = readFileSync(configPath, 'utf-8');
+            expect(content).toBe('export default {}');
+            // No new JSON config should be created
+            expect(existsSync(join(tempDir, '.commitlintrc.json'))).toBe(false);
         });
     });
 
     describe('createSemanticReleaseConfig', () => {
-        it('should create .releaserc.mjs with correct content', () => {
+        it('should create .releaserc.json with correct content', () => {
             createSemanticReleaseConfig(tempDir);
 
-            const configPath = join(tempDir, '.releaserc.mjs');
+            const configPath = join(tempDir, '.releaserc.json');
             expect(existsSync(configPath)).toBe(true);
 
             const content = readFileSync(configPath, 'utf-8');
-            expect(content).toContain('const config =');
-            expect(content).toContain(JSON.stringify(SEMANTIC_RELEASE_CONFIG, null, 4));
-            expect(content).toContain('export default config;');
+            const parsed = JSON.parse(content);
+            expect(parsed).toEqual(SEMANTIC_RELEASE_CONFIG);
         });
 
-        it('should handle existing file by overwriting it', () => {
-            const configPath = join(tempDir, '.releaserc.mjs');
-            writeFileSync(configPath, 'old config');
+        it('should merge with existing JSON config', () => {
+            const configPath = join(tempDir, '.releaserc.json');
+            const existingConfig = { branches: ['custom-branch'] };
+            writeFileSync(configPath, JSON.stringify(existingConfig));
 
             createSemanticReleaseConfig(tempDir);
 
             const content = readFileSync(configPath, 'utf-8');
-            expect(content).toContain('const config =');
-            expect(content).not.toBe('old config');
+            const parsed = JSON.parse(content);
+            // Existing branches should be preserved
+            expect(parsed.branches).toEqual(['custom-branch']);
+            // Default plugins should be added
+            expect(parsed.plugins).toBeDefined();
+        });
+
+        it('should convert existing JSON-format release config to .releaserc.json', () => {
+            const oldConfigPath = join(tempDir, '.releaserc'); // No extension, just JSON content
+            const newConfigPath = join(tempDir, '.releaserc.json');
+            const existingConfig = { branches: ['main'] };
+            writeFileSync(oldConfigPath, JSON.stringify(existingConfig));
+
+            createSemanticReleaseConfig(tempDir);
+
+            // New JSON config should exist
+            expect(existsSync(newConfigPath)).toBe(true);
+            // Old file should be deleted
+            expect(existsSync(oldConfigPath)).toBe(false);
+        });
+
+        it('should skip if existing config is not JSON (e.g., .js file with non-JSON content)', () => {
+            const configPath = join(tempDir, '.releaserc.mjs');
+            writeFileSync(configPath, 'export default {}');
+
+            createSemanticReleaseConfig(tempDir);
+
+            // Original file should not be modified
+            const content = readFileSync(configPath, 'utf-8');
+            expect(content).toBe('export default {}');
+            // No new JSON config should be created
+            expect(existsSync(join(tempDir, '.releaserc.json'))).toBe(false);
         });
     });
 
@@ -189,6 +236,17 @@ describe('Configuration File Generators', () => {
         it('should handle lefthook install errors gracefully', () => {
             expect(() => setupLefthook(tempDir, 'bun')).not.toThrow();
             expect(existsSync(join(tempDir, 'lefthook.yml'))).toBe(true);
+        });
+
+        it('should skip creating lefthook.yml if it already exists', () => {
+            const configPath = join(tempDir, 'lefthook.yml');
+            writeFileSync(configPath, 'existing config');
+
+            setupLefthook(tempDir, 'bun');
+
+            // Original file should NOT be overwritten
+            const content = readFileSync(configPath, 'utf-8');
+            expect(content).toBe('existing config');
         });
     });
 
@@ -375,7 +433,7 @@ describe('Configuration File Generators', () => {
             expect(existsSync(workflowPath)).toBe(true);
         });
 
-        it('should overwrite existing release.yml file', () => {
+        it('should skip if release.yml already exists', () => {
             const workflowsDir = join(tempDir, '.github', 'workflows');
             mkdirSync(workflowsDir, { recursive: true });
             const workflowPath = join(workflowsDir, 'release.yml');
@@ -383,9 +441,9 @@ describe('Configuration File Generators', () => {
 
             createGitHubWorkflow(tempDir, 'bun');
 
+            // Original file should NOT be overwritten
             const content = readFileSync(workflowPath, 'utf-8');
-            expect(content).toContain('Setup Bun');
-            expect(content).not.toBe('old workflow');
+            expect(content).toBe('old workflow');
         });
     });
 
