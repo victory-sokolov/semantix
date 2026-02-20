@@ -127,9 +127,13 @@ export function detectHusky(cwd: string): boolean {
 
 /**
  * Remove Husky from the project
+ * @param cwd - Current working directory
+ * @param pm - Package manager to use
+ * @param skipInstall - If true, skip running install to update lock file (use when install will be called separately)
  */
-export function removeHusky(cwd: string, pm: PackageManager): void {
+export function removeHusky(cwd: string, pm: PackageManager, skipInstall = false): void {
     log('🗑️  Removing Husky...', 'info');
+    let hasWarnings = false;
 
     // 1. Unset git core.hooksPath
     try {
@@ -146,6 +150,7 @@ export function removeHusky(cwd: string, pm: PackageManager): void {
             rmSync(huskyDir, { recursive: true, force: true });
             log('✓ .husky directory removed', 'success');
         } catch (error) {
+            hasWarnings = true;
             log(
                 `⚠️ Could not remove .husky directory: ${error instanceof Error ? error.message : String(error)}`,
                 'warning',
@@ -159,7 +164,11 @@ export function removeHusky(cwd: string, pm: PackageManager): void {
     if (packageJson) {
         let modified = false;
 
-        if (packageJson.devDependencies && typeof packageJson.devDependencies === 'object') {
+        if (
+            packageJson.devDependencies &&
+            typeof packageJson.devDependencies === 'object' &&
+            !Array.isArray(packageJson.devDependencies)
+        ) {
             const deps = packageJson.devDependencies as Record<string, string>;
             if ('husky' in deps) {
                 delete deps.husky;
@@ -181,15 +190,25 @@ export function removeHusky(cwd: string, pm: PackageManager): void {
         }
     }
 
-    // 4. Run install to update lock file
-    try {
-        execCommand(getRunInstallCommand(pm), cwd);
-        log('✓ Dependencies updated', 'success');
-    } catch (error) {
-        log(`⚠️ Could not update dependencies: ${error instanceof Error ? error.message : String(error)}`, 'warning');
+    // 4. Run install to update lock file (unless skipped)
+    if (!skipInstall) {
+        try {
+            execCommand(getRunInstallCommand(pm), cwd);
+            log('✓ Dependencies updated', 'success');
+        } catch (error) {
+            hasWarnings = true;
+            log(
+                `⚠️ Could not update dependencies: ${error instanceof Error ? error.message : String(error)}`,
+                'warning',
+            );
+        }
     }
 
-    log('✓ Husky removed successfully', 'success');
+    if (hasWarnings) {
+        log('⚠️ Husky removal completed with warnings', 'warning');
+    } else {
+        log('✓ Husky removed successfully', 'success');
+    }
 }
 
 export function setupLefthook(cwd: string, pm: PackageManager) {
