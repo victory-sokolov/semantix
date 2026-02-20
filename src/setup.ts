@@ -7,6 +7,8 @@ import {
     updatePackageJson,
     createGitHubWorkflow,
     ensurePackageJsonExists,
+    detectHusky,
+    removeHusky,
 } from './configs';
 
 export class ConventionalCommitSetup {
@@ -75,7 +77,29 @@ export class ConventionalCommitSetup {
         log('\n⏳ Starting installation...\n', 'info');
 
         try {
+            // Check for Husky and remove it BEFORE installing dependencies
+            // This avoids running two full installations (one for deps, one to update lock file)
+            if (detectHusky(this.cwd)) {
+                log('\n⚠️  Husky detected in your project', 'warning');
+                log('Lefthook and Husky both manage git hooks and will conflict.', 'info');
+
+                if (this.skipConfirmation) {
+                    log('Automatically removing Husky in non-interactive mode...', 'info');
+                    removeHusky(this.cwd, packageManager, true); // skipInstall=true since we'll install deps next
+                } else {
+                    const removeHuskyConfirmed = await promptConfirmation(
+                        'Would you like to remove Husky and use Lefthook instead',
+                    );
+                    if (removeHuskyConfirmed) {
+                        removeHusky(this.cwd, packageManager, true); // skipInstall=true since we'll install deps next
+                    } else {
+                        log('⚠️  Keeping Husky. Lefthook setup may fail due to conflict.', 'warning');
+                    }
+                }
+            }
+
             this.installDependencies(packageManager);
+
             createCommitlintConfig(this.cwd);
             createSemanticReleaseConfig(this.cwd);
             setupLefthook(this.cwd, packageManager);

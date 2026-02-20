@@ -152,6 +152,19 @@ export function getInstallCommand(pm: PackageManager, dependencies: string[]): s
     }
 }
 
+export function getRunInstallCommand(pm: PackageManager): string {
+    switch (pm) {
+        case 'npm':
+            return 'npm install';
+        case 'yarn':
+            return 'yarn install';
+        case 'pnpm':
+            return 'pnpm install';
+        case 'bun':
+            return 'bun install';
+    }
+}
+
 export function promptConfirmation(question: string): Promise<boolean> {
     const rl = createInterface({
         input: process.stdin,

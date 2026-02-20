@@ -165,8 +165,6 @@ export const ASCII_ART = `
 export const getLefthookConfig = (pm: PackageManager = 'bun') => {
     const runPrefix = pm === 'bun' ? 'bun run' : `${pm} run`;
     const executePrefix = pm === 'bun' ? 'bunx' : pm === 'npm' ? 'npx' : pm === 'yarn' ? 'yarn dlx' : 'pnpm dlx';
-    // actually for commitlint, we might standardise on using the locally installed one via the script runner or npx/bunx.
-    // bunx --no is specific.
 
     const commitlintCmd =
         pm === 'bun' ? 'bunx --no -- commitlint --edit {1}' : `${executePrefix} commitlint --edit {1}`;
@@ -174,7 +172,7 @@ export const getLefthookConfig = (pm: PackageManager = 'bun') => {
     return `pre-commit:
   commands:
     format-check:
-      run: ${runPrefix} format:check
+      run: ${runPrefix} format
     lint:
       run: ${runPrefix} lint
     typecheck:

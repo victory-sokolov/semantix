@@ -1,5 +1,6 @@
 import { join, basename } from 'path';
-import { existsSync, unlinkSync } from 'fs';
+import { existsSync, unlinkSync, rmSync } from 'fs';
+import { execSync } from 'child_process';
 import {
     COMMITLINT_CONFIG,
     COMMITLINT_CONFIG_FILES,
@@ -21,6 +22,7 @@ import {
     findConfigFile,
     readJsonFileIfExists,
     deepMerge,
+    getRunInstallCommand,
 } from './utils';
 
 export function createCommitlintConfig(cwd: string) {
@@ -97,6 +99,118 @@ export function createSemanticReleaseConfig(cwd: string) {
     log('✓ .releaserc.json created', 'success');
 }
 
+/**
+ * Detect if Husky is installed in the project
+ */
+export function detectHusky(cwd: string): boolean {
+    // Check for .husky directory
+    const huskyDir = join(cwd, '.husky');
+    if (existsSync(huskyDir)) {
+        return true;
+    }
+
+    // Check for husky in package.json dependencies
+    const packageJsonPath = join(cwd, 'package.json');
+    const packageJson = readJsonFileIfExists(packageJsonPath);
+    if (packageJson) {
+        const allDeps = {
+            ...(packageJson.devDependencies as Record<string, string> | undefined),
+            ...(packageJson.dependencies as Record<string, string> | undefined),
+        };
+        if ('husky' in allDeps) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Remove Husky from the project
+ * @param cwd - Current working directory
+ * @param pm - Package manager to use
+ * @param skipInstall - If true, skip running install to update lock file (use when install will be called separately)
+ */
+export function removeHusky(cwd: string, pm: PackageManager, skipInstall = false): void {
+    log('🗑️  Removing Husky...', 'info');
+    let hasWarnings = false;
+
+    // 1. Unset git core.hooksPath
+    try {
+        execSync('git config --unset-all --local core.hooksPath', { cwd, stdio: 'pipe' });
+        log('✓ Git core.hooksPath unset', 'success');
+    } catch {
+        // Config might not exist
+    }
+
+    // 2. Remove .husky directory
+    const huskyDir = join(cwd, '.husky');
+    if (existsSync(huskyDir)) {
+        try {
+            rmSync(huskyDir, { recursive: true, force: true });
+            log('✓ .husky directory removed', 'success');
+        } catch (error) {
+            hasWarnings = true;
+            log(
+                `⚠️ Could not remove .husky directory: ${error instanceof Error ? error.message : String(error)}`,
+                'warning',
+            );
+        }
+    }
+
+    // 3. Remove husky from package.json
+    const packageJsonPath = join(cwd, 'package.json');
+    const packageJson = readJsonFileIfExists(packageJsonPath);
+    if (packageJson) {
+        let modified = false;
+
+        if (
+            packageJson.devDependencies &&
+            typeof packageJson.devDependencies === 'object' &&
+            !Array.isArray(packageJson.devDependencies)
+        ) {
+            const deps = packageJson.devDependencies as Record<string, string>;
+            if ('husky' in deps) {
+                delete deps.husky;
+                modified = true;
+            }
+        }
+
+        if (packageJson.dependencies && typeof packageJson.dependencies === 'object') {
+            const deps = packageJson.dependencies as Record<string, string>;
+            if ('husky' in deps) {
+                delete deps.husky;
+                modified = true;
+            }
+        }
+
+        if (modified) {
+            writeJsonFile(packageJsonPath, packageJson);
+            log('✓ husky removed from package.json', 'success');
+        }
+    }
+
+    // 4. Run install to update lock file (unless skipped)
+    if (!skipInstall) {
+        try {
+            execCommand(getRunInstallCommand(pm), cwd);
+            log('✓ Dependencies updated', 'success');
+        } catch (error) {
+            hasWarnings = true;
+            log(
+                `⚠️ Could not update dependencies: ${error instanceof Error ? error.message : String(error)}`,
+                'warning',
+            );
+        }
+    }
+
+    if (hasWarnings) {
+        log('⚠️ Husky removal completed with warnings', 'warning');
+    } else {
+        log('✓ Husky removed successfully', 'success');
+    }
+}
+
 export function setupLefthook(cwd: string, pm: PackageManager) {
     log('🥊 Setting up Lefthook...', 'info');
 
@@ -133,15 +247,91 @@ export function setupLefthook(cwd: string, pm: PackageManager) {
     }
 }
 
+/**
+ * Check if any existing script runs the given command
+ * @param existingScripts - The scripts object from package.json
+ * @param command - The command to search for (e.g., 'semantic-release')
+ * @returns The key of the script if found, null otherwise
+ */
+function findScriptByCommand(existingScripts: Record<string, string>, command: string): string | null {
+    for (const [key, value] of Object.entries(existingScripts)) {
+        if (value === command || value.startsWith(`${command} `)) {
+            return key;
+        }
+    }
+    return null;
+}
+
+/**
+ * Add a script to package.json, handling conflicts by creating a namespaced version
+ */
+function addScriptWithNamespace(
+    scripts: Record<string, string>,
+    key: string,
+    command: string,
+    namespace: string,
+): { added: boolean; conflict: boolean } {
+    // Check if command already exists anywhere
+    const existingKey = findScriptByCommand(scripts, command);
+    if (existingKey) {
+        log(`ℹ️ Found existing "${command}" script "${existingKey}", keeping it`, 'info');
+        return { added: false, conflict: false };
+    }
+
+    // Key is available
+    if (!scripts[key]) {
+        scripts[key] = command;
+        return { added: true, conflict: false };
+    }
+
+    // Same value already exists
+    if (scripts[key] === command) {
+        return { added: false, conflict: false };
+    }
+
+    // Conflict - create namespaced version
+    const namespacedKey = `${key}:${namespace}`;
+    scripts[namespacedKey] = command;
+    log(`⚠️ Conflict detected for "${key}". Preserving existing and adding "${namespacedKey}"`, 'warning');
+    return { added: true, conflict: true };
+}
+
+/**
+ * Add prepare script with special merge logic for combining commands
+ */
+function addPrepareScript(scripts: Record<string, string>): boolean {
+    const key = 'prepare';
+    const command = 'lefthook install';
+
+    // Key is available
+    if (!scripts[key]) {
+        scripts[key] = command;
+        return false;
+    }
+
+    // Same value already exists
+    if (scripts[key] === command) {
+        return false;
+    }
+
+    const existing = scripts[key];
+
+    // Merge if already has multiple commands or lefthook
+    if (existing.includes('&&') || existing.includes('lefthook')) {
+        scripts[key] = `${existing} && ${command}`;
+        log(`⚠️ Merged prepare script: "${existing}" + "${command}"`, 'warning');
+    } else {
+        scripts[`${key}:lefthook`] = command;
+        log(`⚠️ Conflict detected for "${key}". Preserving existing and adding "prepare:lefthook"`, 'warning');
+    }
+
+    return true;
+}
+
 export function updatePackageJson(cwd: string) {
     log('📦 Updating package.json scripts...', 'info');
 
     const packageJsonPath = join(cwd, 'package.json');
-    const scripts = {
-        release: 'semantic-release',
-        'release:dry': 'semantic-release --dry-run',
-        prepare: 'lefthook install',
-    };
 
     let packageJson: Record<string, unknown>;
     try {
@@ -154,47 +344,27 @@ export function updatePackageJson(cwd: string) {
         packageJson.scripts = {};
     }
 
-    const existingScripts = packageJson.scripts as Record<string, string>;
+    const scripts = packageJson.scripts as Record<string, string>;
     const conflicts: string[] = [];
-    const mergedScripts: Record<string, string> = { ...existingScripts };
 
-    // Check for conflicts and handle them
-    for (const [key, value] of Object.entries(scripts)) {
-        if (existingScripts[key]) {
-            if (existingScripts[key] === value) {
-                // Same value, no conflict
-                continue;
-            }
+    // Add release scripts with namespace conflict handling
+    const releaseResult = addScriptWithNamespace(scripts, 'release', 'semantic-release', 'semantic');
+    if (releaseResult.conflict) {
+        conflicts.push('release');
+    }
 
-            conflicts.push(key);
+    const dryRunResult = addScriptWithNamespace(scripts, 'release:dry', 'semantic-release --dry-run', 'semantic');
+    if (dryRunResult.conflict) {
+        conflicts.push('release:dry');
+    }
 
-            // For prepare script, try to merge with existing prepare hooks
-            if (key === 'prepare') {
-                const existing = existingScripts[key];
-                if (existing.includes('&&') || existing.includes('lefthook')) {
-                    // Already has lefthook or multiple commands, append with &&
-                    mergedScripts[key] = `${existing} && ${value}`;
-                    log(`⚠️ Merged prepare script: "${existing}" + "${value}"`, 'warning');
-                } else {
-                    // Create namespaced alternative
-                    mergedScripts[`${key}:lefthook`] = value;
-                    log(
-                        `⚠️ Conflict detected for "${key}". Preserving existing and adding "prepare:lefthook"`,
-                        'warning',
-                    );
-                }
-            } else {
-                // For other scripts, create namespaced alternatives
-                mergedScripts[`${key}:semantic`] = value;
-                log(`⚠️ Conflict detected for "${key}". Preserving existing and adding "${key}:semantic"`, 'warning');
-            }
-        } else {
-            mergedScripts[key] = value;
-        }
+    // Add prepare script with merge logic
+    if (addPrepareScript(scripts)) {
+        conflicts.push('prepare');
     }
 
     // Update and write
-    packageJson.scripts = mergedScripts;
+    packageJson.scripts = scripts;
     try {
         writeJsonFile(packageJsonPath, packageJson);
         log('✓ package.json updated', 'success');
@@ -251,16 +421,16 @@ export async function ensurePackageJsonExists(cwd: string, pm: PackageManager): 
         let initCmd: string;
         switch (pm) {
             case 'npm':
-                initCmd = 'npm init -y'; // Use -y for non-interactive
+                initCmd = 'npm init -y';
                 break;
             case 'pnpm':
                 initCmd = 'pnpm init';
                 break;
             case 'bun':
-                initCmd = 'bun init -y'; // bun supports -y
+                initCmd = 'bun init -y';
                 break;
             case 'yarn':
-                initCmd = 'yarn init -y'; // yarn supports -y
+                initCmd = 'yarn init -y';
                 break;
         }
 
