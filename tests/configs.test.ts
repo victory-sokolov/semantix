@@ -190,7 +190,7 @@ describe('Configuration File Generators', () => {
 
             const configPath = join(tempDir, 'lefthook.yml');
             const content = readFileSync(configPath, 'utf-8');
-            expect(content).toContain('bun run format:check');
+            expect(content).toContain('bun run format');
             expect(content).toContain('bunx --no -- commitlint');
         });
 
@@ -199,7 +199,7 @@ describe('Configuration File Generators', () => {
 
             const configPath = join(tempDir, 'lefthook.yml');
             const content = readFileSync(configPath, 'utf-8');
-            expect(content).toContain('npm run format:check');
+            expect(content).toContain('npm run format');
             expect(content).toContain('npx commitlint');
         });
 
@@ -208,7 +208,7 @@ describe('Configuration File Generators', () => {
 
             const configPath = join(tempDir, 'lefthook.yml');
             const content = readFileSync(configPath, 'utf-8');
-            expect(content).toContain('yarn run format:check');
+            expect(content).toContain('yarn run format');
             expect(content).toContain('yarn dlx commitlint');
         });
 

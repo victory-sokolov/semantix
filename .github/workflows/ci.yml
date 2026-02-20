@@ -1,13 +1,6 @@
 name: CI
 
 on:
-  push:
-    paths:
-      - 'package.json'
-      - 'bun.lock'
-      - 'src/**'
-      - 'tests/**'
-      - '.github/workflows/**'
   pull_request:
     branches: [main]
     paths:
@@ -23,5 +16,5 @@ permissions:
   pull-requests: write
 
 jobs:
-  ci:
+  build-and-test:
     uses: victory-sokolov/githooks/.github/workflows/node-ci.yml@main

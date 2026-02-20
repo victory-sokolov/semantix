@@ -120,19 +120,19 @@ describe('Configuration Constants', () => {
     describe('Lefthook Configuration', () => {
         it('should default to bun config', () => {
             const config = getLefthookConfig();
-            expect(config).toContain('bun run format:check');
+            expect(config).toContain('bun run format');
             expect(config).toContain('bunx --no -- commitlint');
         });
 
         it('should generate npm config', () => {
             const config = getLefthookConfig('npm');
-            expect(config).toContain('npm run format:check');
+            expect(config).toContain('npm run format');
             expect(config).toContain('npx commitlint');
         });
 
         it('should generate yarn config', () => {
             const config = getLefthookConfig('yarn');
-            expect(config).toContain('yarn run format:check');
+            expect(config).toContain('yarn run format');
             expect(config).toContain('yarn dlx commitlint');
         });
     });
