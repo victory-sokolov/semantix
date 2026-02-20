@@ -135,5 +135,11 @@ describe('Configuration Constants', () => {
             expect(config).toContain('yarn run format');
             expect(config).toContain('yarn dlx commitlint');
         });
+
+        it('should generate pnpm config', () => {
+            const config = getLefthookConfig('pnpm');
+            expect(config).toContain('pnpm run format');
+            expect(config).toContain('pnpm dlx commitlint');
+        });
     });
 });

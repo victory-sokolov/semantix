@@ -212,6 +212,15 @@ describe('Configuration File Generators', () => {
             expect(content).toContain('yarn dlx commitlint');
         });
 
+        it('should create lefthook.yml with pnpm package manager config', () => {
+            setupLefthook(tempDir, 'pnpm');
+
+            const configPath = join(tempDir, 'lefthook.yml');
+            const content = readFileSync(configPath, 'utf-8');
+            expect(content).toContain('pnpm run format');
+            expect(content).toContain('pnpm dlx commitlint');
+        });
+
         it('should call lefthook install command', () => {
             setupLefthook(tempDir, 'bun');
 
