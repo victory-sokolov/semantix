@@ -381,6 +381,107 @@ describe('Configuration File Generators', () => {
 
             expect(() => updatePackageJson(tempDir)).toThrow();
         });
+
+        it('should keep existing semantic-release script and not add release', () => {
+            const packageJsonPath = join(tempDir, 'package.json');
+            writeFileSync(
+                packageJsonPath,
+                JSON.stringify(
+                    {
+                        name: 'test-package',
+                        scripts: { 'semantic-release': 'semantic-release' },
+                    },
+                    null,
+                    4,
+                ),
+            );
+
+            updatePackageJson(tempDir);
+
+            const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+            // Should keep the original script
+            expect(packageJson.scripts['semantic-release']).toBe('semantic-release');
+            // Should NOT add a duplicate release script
+            expect(packageJson.scripts['release']).toBeUndefined();
+            // Should still add release:dry
+            expect(packageJson.scripts['release:dry']).toBe('semantic-release --dry-run');
+            expect(packageJson.scripts.prepare).toBe('lefthook install');
+        });
+
+        it('should keep existing release script that runs semantic-release', () => {
+            const packageJsonPath = join(tempDir, 'package.json');
+            writeFileSync(
+                packageJsonPath,
+                JSON.stringify(
+                    {
+                        name: 'test-package',
+                        scripts: { release: 'semantic-release' },
+                    },
+                    null,
+                    4,
+                ),
+            );
+
+            updatePackageJson(tempDir);
+
+            const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+            // Should keep the original release script
+            expect(packageJson.scripts.release).toBe('semantic-release');
+            // Should add release:dry
+            expect(packageJson.scripts['release:dry']).toBe('semantic-release --dry-run');
+            expect(packageJson.scripts.prepare).toBe('lefthook install');
+        });
+
+        it('should keep existing semantic-release --dry-run script and not add release:dry', () => {
+            const packageJsonPath = join(tempDir, 'package.json');
+            writeFileSync(
+                packageJsonPath,
+                JSON.stringify(
+                    {
+                        name: 'test-package',
+                        scripts: {
+                            release: 'semantic-release',
+                            'semantic-release:dry': 'semantic-release --dry-run',
+                        },
+                    },
+                    null,
+                    4,
+                ),
+            );
+
+            updatePackageJson(tempDir);
+
+            const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+            // Should keep original scripts
+            expect(packageJson.scripts.release).toBe('semantic-release');
+            expect(packageJson.scripts['semantic-release:dry']).toBe('semantic-release --dry-run');
+            // Should NOT add a duplicate release:dry
+            expect(packageJson.scripts['release:dry']).toBeUndefined();
+            expect(packageJson.scripts.prepare).toBe('lefthook install');
+        });
+
+        it('should detect semantic-release with additional flags', () => {
+            const packageJsonPath = join(tempDir, 'package.json');
+            writeFileSync(
+                packageJsonPath,
+                JSON.stringify(
+                    {
+                        name: 'test-package',
+                        scripts: { release: 'semantic-release --branches main' },
+                    },
+                    null,
+                    4,
+                ),
+            );
+
+            updatePackageJson(tempDir);
+
+            const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+            // Should keep the original release script with flags
+            expect(packageJson.scripts.release).toBe('semantic-release --branches main');
+            // Should still add release:dry
+            expect(packageJson.scripts['release:dry']).toBe('semantic-release --dry-run');
+        });
     });
 
     describe('createGitHubWorkflow', () => {

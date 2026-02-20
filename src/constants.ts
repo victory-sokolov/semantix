@@ -172,7 +172,7 @@ export const getLefthookConfig = (pm: PackageManager = 'bun') => {
     return `pre-commit:
   commands:
     format-check:
-      run: ${runPrefix} format:check
+      run: ${runPrefix} format
     lint:
       run: ${runPrefix} lint
     typecheck:
