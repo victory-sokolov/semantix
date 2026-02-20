@@ -1,3 +1,16 @@
+# [1.3.0](https://github.com/victory-sokolov/semantix/compare/v1.2.0...v1.3.0) (2026-02-20)
+
+
+### Bug Fixes
+
+* fix tests ([0b3725c](https://github.com/victory-sokolov/semantix/commit/0b3725cf5637f98ac0c62ce37efc2f0f563d1850))
+
+
+### Features
+
+* check if scripts already exists in the package.json ([cc5c3cf](https://github.com/victory-sokolov/semantix/commit/cc5c3cfd87a919cc99c7591323a873e252dea72b))
+* fix conflict with husky and remove it before using lefthoo hook ([34a06ff](https://github.com/victory-sokolov/semantix/commit/34a06ff3d7066022d29b91a0cdda8d0bcfb16412))
+
 # [1.2.0](https://github.com/victory-sokolov/semantix/compare/v1.1.0...v1.2.0) (2026-02-19)
 
 
