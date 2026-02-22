@@ -182,5 +182,8 @@ commit-msg:
   commands:
     commitlint:
       run: ${commitlintCmd}
+
+pre-push:
+  parallel: true
 `;
 };

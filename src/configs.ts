@@ -358,7 +358,6 @@ export function updatePackageJson(cwd: string) {
         conflicts.push('release:dry');
     }
 
-    // Add prepare script with merge logic
     if (addPrepareScript(scripts)) {
         conflicts.push('prepare');
     }
