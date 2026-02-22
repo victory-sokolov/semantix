@@ -170,6 +170,7 @@ export const getLefthookConfig = (pm: PackageManager = 'bun') => {
         pm === 'bun' ? 'bunx --no -- commitlint --edit {1}' : `${executePrefix} commitlint --edit {1}`;
 
     return `pre-commit:
+  parallel: true
   commands:
     format-check:
       run: ${runPrefix} format
@@ -182,8 +183,5 @@ commit-msg:
   commands:
     commitlint:
       run: ${commitlintCmd}
-
-pre-push:
-  parallel: true
 `;
 };
