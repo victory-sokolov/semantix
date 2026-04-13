@@ -1,5 +1,5 @@
 import { join, basename } from 'path';
-import { existsSync, unlinkSync, rmSync } from 'fs';
+import { existsSync, unlinkSync, rmSync, readFileSync } from 'fs';
 import { execSync } from 'child_process';
 import {
     COMMITLINT_CONFIG,
@@ -376,20 +376,35 @@ export function updatePackageJson(cwd: string) {
     }
 }
 
+export function getNodeVersionFromNvmrc(cwd: string): number {
+    const nvmrcPath = join(cwd, '.nvmrc');
+    let nodeVersion = 24;
+    if (existsSync(nvmrcPath)) {
+        const nvmrcContent = readFileSync(nvmrcPath, 'utf-8').trim();
+        const parsed = parseInt(nvmrcContent, 10);
+        if (!isNaN(parsed)) {
+            nodeVersion = parsed;
+            log(`📄 Found .nvmrc, using Node ${nodeVersion}`, 'info');
+        }
+    }
+    return nodeVersion;
+}
+
 export function createGitHubWorkflow(cwd: string, pm: PackageManager) {
     log('🔄 Creating GitHub Actions workflow...', 'info');
 
     const workflowDir = join(cwd, '.github', 'workflows');
     const releaseWorkflowPath = join(workflowDir, 'release.yml');
 
-    // Check if release.yml already exists
     if (existsSync(releaseWorkflowPath)) {
         log('⚠️ .github/workflows/release.yml already exists, skipping...', 'warning');
         return;
     }
 
+    const nodeVersion = getNodeVersionFromNvmrc(cwd);
+
     ensureDirectoryExists(workflowDir);
-    writeTextFile(releaseWorkflowPath, getGithubWorkflow(pm));
+    writeTextFile(releaseWorkflowPath, getGithubWorkflow(pm, nodeVersion));
 
     log('✓ GitHub Actions workflow created', 'success');
 }

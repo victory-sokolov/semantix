@@ -95,7 +95,7 @@ export const SEMANTIC_RELEASE_CONFIG = {
     ],
 };
 
-export const getGithubWorkflow = (pm: PackageManager = 'bun') => {
+export const getGithubWorkflow = (pm: PackageManager = 'bun', nodeVersion = 24) => {
     const setupStep =
         pm === 'bun'
             ? `
@@ -107,7 +107,7 @@ export const getGithubWorkflow = (pm: PackageManager = 'bun') => {
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: ${nodeVersion}
           cache: '${pm}'`;
 
     const installCmd = pm === 'npm' ? 'npm ci' : `${pm} install`;
