@@ -20,9 +20,6 @@ jobs:
 
       - name: Setup dependencies with cache
         uses: victory-sokolov/githooks/.github/actions/node-deps-cache@main
-        with:
-          package-manager: bun
-          node-version: 22
 
       - name: Build
         run: bun run build
